@@ -18,16 +18,15 @@ create policy "job_diary_office_update" on public.job_diary
   using (public.current_app_role() = 'office')
   with check (public.current_app_role() = 'office');
 
--- Technicians can see diary entries on jobs assigned to them...
+-- Technicians can see diary entries on jobs assigned to them. Uses
+-- technician_owns_job() rather than querying public.jobs directly --
+-- a direct subquery would be blocked by jobs' own RLS, since
+-- technicians have no SELECT policy on jobs.
 create policy "job_diary_technician_select" on public.job_diary
   for select
   using (
     public.current_app_role() = 'technician'
-    and exists (
-      select 1 from public.jobs
-      where jobs.id = job_diary.job_id
-        and jobs.assigned_to = auth.uid()
-    )
+    and public.technician_owns_job(job_diary.job_id)
   );
 
 -- ...and can add new entries to those jobs, but the entry must be
@@ -39,9 +38,5 @@ create policy "job_diary_technician_insert" on public.job_diary
   with check (
     public.current_app_role() = 'technician'
     and created_by = auth.uid()
-    and exists (
-      select 1 from public.jobs
-      where jobs.id = job_diary.job_id
-        and jobs.assigned_to = auth.uid()
-    )
+    and public.technician_owns_job(job_diary.job_id)
   );

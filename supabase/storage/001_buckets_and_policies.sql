@@ -33,17 +33,16 @@ create policy "diary_photos_admin_office_all" on storage.objects
 -- Diary photos: technicians can upload/view files for their own
 -- assigned jobs. Files must be uploaded under a path starting with
 -- "<job_id>/..." -- storage.foldername(name) splits the path and
--- [1] is the first folder segment, i.e. the job id.
+-- [1] is the first folder segment, i.e. the job id. Uses
+-- technician_owns_job() rather than querying public.jobs directly --
+-- a direct subquery would be blocked by jobs' own RLS, since
+-- technicians have no SELECT policy on jobs.
 create policy "diary_photos_technician_insert" on storage.objects
   for insert
   with check (
     bucket_id = 'diary-photos'
     and public.current_app_role() = 'technician'
-    and exists (
-      select 1 from public.jobs
-      where jobs.id::text = (storage.foldername(name))[1]
-        and jobs.assigned_to = auth.uid()
-    )
+    and public.technician_owns_job(((storage.foldername(name))[1])::uuid)
   );
 
 create policy "diary_photos_technician_select" on storage.objects
@@ -51,9 +50,5 @@ create policy "diary_photos_technician_select" on storage.objects
   using (
     bucket_id = 'diary-photos'
     and public.current_app_role() = 'technician'
-    and exists (
-      select 1 from public.jobs
-      where jobs.id::text = (storage.foldername(name))[1]
-        and jobs.assigned_to = auth.uid()
-    )
+    and public.technician_owns_job(((storage.foldername(name))[1])::uuid)
   );
