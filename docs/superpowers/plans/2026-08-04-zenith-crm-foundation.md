@@ -812,11 +812,15 @@ git commit -m "feat: add login page and session-aware app shell"
 
 This task is a guided walkthrough done together (dashboard actions are yours; I'll tell you exactly what to click and what to paste). Nothing here is code the user writes solo.
 
-- [ ] **Step 1:** Create a free Supabase account and a new project in the dashboard (I'll walk you through this when we get here).
-- [ ] **Step 2:** Copy the Project URL and `anon` public API key into a real `zenith-crm/.env` file (never committed — Task 2 already gitignored it).
-- [ ] **Step 3:** Run each file in `supabase/schema/`, then `supabase/policies/`, then `supabase/storage/`, in numeric order, in the Supabase SQL Editor.
-- [ ] **Step 4:** Create one test account per role (admin/office/technician) via Supabase Auth, then insert a matching row into `public.users` for each with the right `role`.
-- [ ] **Step 5:** Manually verify the rules hold: sign in as technician and confirm `get_my_jobs()` returns jobs without `quoted_price`, confirm a direct `select * from jobs` as technician returns nothing, confirm `job_costs` is empty/inaccessible to technician, confirm office can't delete a client.
+- [x] **Step 1:** Create a free Supabase account and a new project in the dashboard (I'll walk you through this when we get here).
+- [x] **Step 2:** Copy the Project URL and `anon` public API key into a real `zenith-crm/.env` file (never committed — Task 2 already gitignored it).
+- [x] **Step 3:** Run each file in `supabase/schema/`, then `supabase/policies/`, then `supabase/storage/`, in numeric order, in the Supabase SQL Editor.
+- [x] **Step 4:** Create one test account per role (admin/office/technician) via Supabase Auth, then insert a matching row into `public.users` for each with the right `role`.
+- [x] **Step 5:** Manually verify the rules hold: sign in as technician and confirm `get_my_jobs()` returns jobs without `quoted_price`, confirm a direct `select * from jobs` as technician returns nothing, confirm `job_costs` is empty/inaccessible to technician, confirm office can't delete a client.
+
+**Verified 2026-08-05** via SQL Editor role impersonation (`select set_config('request.jwt.claims', json_build_object('sub', '<user-id>')::text, true); set local role authenticated;` ahead of each test query). All rules above held for admin, office, and technician, plus the storage policies (technician can upload/select `diary-photos` objects only under their own assigned job's path; a path for an unassigned/nonexistent job correctly raises an RLS violation on insert).
+
+**Gotcha found and fixed during verification:** the `technician_owns_job()` / `technician_has_job_for_client()` RLS fix (commit `c9abcde`, written during Task 6/7 debugging) had been committed to the repo but **never actually re-run against the live Supabase project** — the live database still had the original broken policies (`clients_technician_select`, `job_diary_technician_select`/`_insert`, both `diary_photos_technician_*` storage policies), which silently returned 0 rows for technicians on data they should have been able to see. Diagnosed by comparing live policy definitions (`select policyname, qual, with_check from pg_policies where tablename = '...'`) against the repo's already-fixed SQL, then re-applying the three helper functions and five affected policies live. Lesson: a git commit to `supabase/policies/*.sql` does not itself change the live database — any policy fix must be explicitly re-run in the SQL Editor, and `pg_policies` is the fast way to confirm what's actually live matches what's committed.
 
 ---
 
