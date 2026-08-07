@@ -9,15 +9,18 @@ export default function Dashboard() {
   if (loading) return <p>Loading...</p>
   if (error) return <p role="alert">Could not load jobs: {error.message}</p>
 
+  const isTechnician = profile?.role === 'technician'
+  const visibleStatuses = isTechnician ? ['Scheduled'] : JOB_STATUSES
+
   const counts = Object.fromEntries(
-    JOB_STATUSES.map((status) => [status, jobs.filter((job) => job.status === status).length])
+    visibleStatuses.map((status) => [status, jobs.filter((job) => job.status === status).length])
   )
 
   return (
     <div>
-      <h1>{profile?.role === 'technician' ? 'My Jobs' : 'Dashboard'}</h1>
+      <h1>{isTechnician ? 'My Jobs' : 'Dashboard'}</h1>
       <div className="stat-cards">
-        {JOB_STATUSES.map((status) => (
+        {visibleStatuses.map((status) => (
           <div className="stat-card" key={status}>
             <div className="count">{counts[status]}</div>
             <div>{status}</div>
