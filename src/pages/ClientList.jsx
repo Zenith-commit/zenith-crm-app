@@ -1,8 +1,10 @@
-import { Link } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import { useClients } from '../hooks/useClients'
 
 export default function ClientList() {
+  const { profile } = useOutletContext()
   const { clients, loading, error } = useClients()
+  const isStaff = profile?.role !== 'technician'
 
   if (loading) return <p>Loading...</p>
   if (error) return <p role="alert">Could not load clients: {error.message}</p>
@@ -10,6 +12,7 @@ export default function ClientList() {
   return (
     <div>
       <h1>Clients</h1>
+      {isStaff && <Link className="btn-primary" to="/clients/new">Add Client</Link>}
       <table>
         <thead>
           <tr>
