@@ -1,53 +1,14 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
+  --navy: #06143b;
+  --orange: #faa21b;
+  --white: #ffffff;
+  --text: #1a1a1a;
+  --border: #d8dce6;
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  font: 16px/145% var(--sans);
   color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+  background: var(--white);
 }
 
 body {
@@ -55,57 +16,133 @@ body {
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  min-height: 100vh;
+}
+
+button {
+  font: inherit;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--navy);
+}
+
+form label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+form input,
+form select,
+form textarea {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  padding: 6px 8px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  font-weight: normal;
+}
+
+.btn-primary {
+  display: inline-block;
+  background: var(--orange);
+  color: var(--navy);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.app-shell {
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  min-height: 100vh;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 24px;
+  background: var(--navy);
+  color: var(--white);
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+.app-nav-logo {
+  height: 40px;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
+.app-nav-links {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.app-nav-links a {
+  color: var(--white);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.app-nav-links a:hover {
+  color: var(--orange);
+}
+
+.app-nav-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-nav-user button {
+  background: var(--orange);
+  color: var(--navy);
+  border: none;
+  padding: 6px 14px;
   border-radius: 4px;
-  color: var(--text-h);
+  font-weight: 600;
+  cursor: pointer;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.app-main {
+  flex: 1;
+  padding: 24px;
+}
+
+.stat-cards {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: var(--navy);
+  color: var(--white);
+  border-radius: 8px;
+  padding: 20px 24px;
+  min-width: 140px;
+}
+
+.stat-card .count {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--orange);
 }
