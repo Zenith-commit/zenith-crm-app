@@ -29,6 +29,7 @@ returns table (
   id uuid,
   client_id uuid,
   status public.job_status,
+  job_type public.job_type,
   description text,
   created_at timestamptz,
   updated_at timestamptz
@@ -38,9 +39,9 @@ stable
 security definer
 set search_path = public
 as $$
-  select id, client_id, status, description, created_at, updated_at
+  select id, client_id, status, job_type, description, created_at, updated_at
   from public.jobs
   where assigned_to = auth.uid();
 $$;
 
-comment on function public.get_my_jobs() is 'Returns the calling technician''s assigned jobs without quoted_price.';
+comment on function public.get_my_jobs() is 'Returns the calling technician''s assigned jobs without quoted_price or invoiced status.';
