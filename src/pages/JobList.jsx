@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import { useJobs } from '../hooks/useJobs'
 import { JOB_STATUSES } from '../lib/jobConstants'
 import JobRow from '../components/JobRow'
@@ -18,6 +18,7 @@ export default function JobList() {
   return (
     <div>
       <h1>Jobs</h1>
+      {isStaff && <Link className="btn-primary" to="/jobs/new">Add Job</Link>}
       <label>
         Filter by status
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
