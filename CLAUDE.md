@@ -40,6 +40,8 @@ Three roles: `admin`, `office`, `technician`.
 - Job list/detail/create/edit
 - Job diary with photo upload
 - **Materials & Services catalog** (`materials_catalog` table + RLS, list/create/edit UI at `/catalog`, admin/office only) — fully built, tested, pushed to GitHub. Fields: item_number (optional/non-unique), description, item_type (material/service), price, purchase_cost, tax_rate (defaults 10% GST), price_includes_tax, active flag.
+- **`bundles` table + RLS** — reusable job-type template library, admin/office only. Fields: item_number (optional/non-unique), name, description, active flag. RLS verified live (admin insert, office update/archive, technician blocked). No UI yet — see Not Started Yet.
+- **`bundle_items` table + RLS** — line items belonging to a bundle, each referencing a `materials_catalog` row via FK, with default_qty (numeric, can be 0) and default_markup_pct. No `active` flag (line removal is a hard delete) and no sort_order column (displays in insertion order). Admin/office only. RLS verified live (admin insert, office insert+update, technician blocked with visible_count = 0). No UI yet — see Not Started Yet.
 
 ## Current Phase: Job Billing Integration (Day 5-7)
 
@@ -47,9 +49,9 @@ Three roles: `admin`, `office`, `technician`.
 
 **Architecture (three new tables):**
 
-1. **`bundles`** — reusable job-type templates (e.g. "Concrete Roof Restoration," "Gutter Installation"). Admin/office only, shared/global library — not per-staff.
-2. **`bundle_items`** — line items belonging to a bundle, each referencing a `materials_catalog` row, with a *default* qty (can be 0 — items still show so staff can adjust) and default markup %. Admin/office only.
-3. **`job_line_items`** — the actual per-job cost lines. Created by copying a bundle's items onto a specific job, then freely editable (qty, markup, or add new lines not from any bundle). Admin/office full read/write. Technicians: qty + item name only, no cost/markup/price.
+1. **`bundles`** — reusable job-type templates (e.g. "Concrete Roof Restoration," "Gutter Installation"). Admin/office only, shared/global library — not per-staff. *(schema + RLS built and verified live)*
+2. **`bundle_items`** — line items belonging to a bundle, each referencing a `materials_catalog` row, with a *default* qty (can be 0 — items still show so staff can adjust) and default markup %. Admin/office only. *(schema + RLS built and verified live)*
+3. **`job_line_items`** — the actual per-job cost lines. Created by copying a bundle's items onto a specific job, then freely editable (qty, markup, or add new lines not from any bundle). Admin/office full read/write. Technicians: qty + item name only, no cost/markup/price. *(not yet built)*
 
 **Calculated fields (per line):**
 `price_inc_gst = cost_inc_gst × (1 + markup_pct / 100)`
