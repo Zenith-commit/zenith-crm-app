@@ -7,6 +7,7 @@ import ClientDetail from './pages/ClientDetail'
 import JobList from './pages/JobList'
 import JobNew from './pages/JobNew'
 import JobDetail from './pages/JobDetail'
+import CatalogList from './pages/CatalogList'
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/jobs" element={<JobList />} />
         <Route path="/jobs/new" element={<JobNew />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
+        <Route path="/catalog" element={<CatalogList />} />
         <Route path="*" element={<p>Page not found (yet)</p>} />
       </Route>
     </Routes>
