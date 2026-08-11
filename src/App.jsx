@@ -8,6 +8,8 @@ import JobList from './pages/JobList'
 import JobNew from './pages/JobNew'
 import JobDetail from './pages/JobDetail'
 import CatalogList from './pages/CatalogList'
+import CatalogNew from './pages/CatalogNew'
+import CatalogDetail from './pages/CatalogDetail'
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
         <Route path="/jobs/new" element={<JobNew />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/catalog" element={<CatalogList />} />
+        <Route path="/catalog/new" element={<CatalogNew />} />
+        <Route path="/catalog/:id" element={<CatalogDetail />} />
         <Route path="*" element={<p>Page not found (yet)</p>} />
       </Route>
     </Routes>
