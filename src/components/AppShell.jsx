@@ -19,6 +19,7 @@ export default function AppShell() {
           <Link to="/clients">Clients</Link>
           <Link to="/jobs">Jobs</Link>
           {profile?.role !== 'technician' && <Link to="/catalog">Catalog</Link>}
+          {profile?.role !== 'technician' && <Link to="/bundles">Bundles</Link>}
         </nav>
         <div className="app-nav-user">
           {profile ? (
