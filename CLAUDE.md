@@ -42,17 +42,19 @@ Three roles: `admin`, `office`, `technician`.
 - **Materials & Services catalog** (`materials_catalog` table + RLS, list/create/edit UI at `/catalog`, admin/office only) — fully built, tested, pushed to GitHub. Fields: item_number (optional/non-unique), description, item_type (material/service), price, purchase_cost, tax_rate (defaults 10% GST), price_includes_tax, active flag.
 - **`bundles` table + RLS** — reusable job-type template library, admin/office only. Fields: item_number (optional/non-unique), name, description, active flag. RLS verified live (admin insert, office update/archive, technician blocked). No UI yet — see Not Started Yet.
 - **`bundle_items` table + RLS** — line items belonging to a bundle, each referencing a `materials_catalog` row via FK, with default_qty (numeric, can be 0) and default_markup_pct. No `active` flag (line removal is a hard delete) and no sort_order column (displays in insertion order). Admin/office only. RLS verified live (admin insert, office insert+update, technician blocked with visible_count = 0). No UI yet — see Not Started Yet.
-- **`job_line_items` table + RLS + `get_my_job_line_items()` RPC** — the actual per-job billing lines (copied from a bundle or added as one-offs). Fields: job_id, materials_catalog_id (nullable, for one-off lines), item_code_snapshot, item_name_snapshot, qty, cost_inc_gst_snapshot, markup_pct, plus stored generated columns price_inc_gst and total_inc_gst. Admin/office full CRUD, same pattern as bundles/bundle_items. Technicians have zero access to the base table — they read qty + item_name_snapshot only through `get_my_job_line_items(job_id)`, a `SECURITY DEFINER` RPC mirroring `get_my_jobs()`, restricted to jobs assigned to them via the existing `technician_owns_job()` helper. RLS + RPC verified live (admin insert, office insert/update/delete, generated columns compute correctly, technician blocked on base table, technician RPC returns qty/name only for their own assigned job and nothing for a job that isn't theirs). No UI yet — see Not Started Yet. This completes the schema/RLS for all three Job Billing Integration tables.
+- **`job_line_items` table + RLS + `get_my_job_line_items()` RPC** — the actual per-job billing lines (copied from a bundle or added as one-offs). Fields: job_id, materials_catalog_id (nullable, for one-off lines), item_code_snapshot, item_name_snapshot, qty, cost_inc_gst_snapshot, markup_pct, applied_bundle_id (nullable FK -> job_applied_bundles, added when that table was built), plus stored generated columns price_inc_gst and total_inc_gst. Admin/office full CRUD, same pattern as bundles/bundle_items. Technicians have zero access to the base table — they read qty + item_name_snapshot only through `get_my_job_line_items(job_id)`, a `SECURITY DEFINER` RPC mirroring `get_my_jobs()`, restricted to jobs assigned to them via the existing `technician_owns_job()` helper. RLS + RPC verified live (admin insert, office insert/update/delete, generated columns compute correctly, technician blocked on base table, technician RPC returns qty/name only for their own assigned job and nothing for a job that isn't theirs). No UI yet — see Not Started Yet.
+- **`job_applied_bundles` table + RLS** — tracks each "a bundle was applied to a job" event, so line items can be grouped by originating bundle and a whole applied bundle removed in one action. Fields: job_id, bundle_id, bundle_name_snapshot, applied_at, applied_by. A bundle can be applied to the same job more than once (each a separate row). `job_line_items.applied_bundle_id` references this table `on delete cascade` — deleting an applied-bundle row removes exactly the line items that belong to it; one-off lines (`applied_bundle_id` null) and other bundles' lines are unaffected. Admin/office only, same pattern as bundles/bundle_items. RLS + cascade behavior verified live (admin full CRUD, office insert+update, technician fully blocked, cascade deletes only the targeted bundle's lines). No UI yet — see Not Started Yet. This completes the schema/RLS for the Job Billing Integration data model.
 
 ## Current Phase: Job Billing Integration (Day 5-7)
 
 **Real-world workflow this supports:** customer calls in → inspector visits, writes inspection notes → quoting team selects a pre-built **bundle** (job-type template, e.g. "Concrete Roof Restoration") → bundle's line items get applied to the job → office can freely adjust qty/markup or add one-off items → totals calculate automatically.
 
-**Architecture (three new tables):**
+**Architecture (four tables — the fourth, `job_applied_bundles`, was added after the original three-table plan to support grouping/bulk-remove):**
 
 1. **`bundles`** — reusable job-type templates (e.g. "Concrete Roof Restoration," "Gutter Installation"). Admin/office only, shared/global library — not per-staff. *(schema + RLS built and verified live)*
 2. **`bundle_items`** — line items belonging to a bundle, each referencing a `materials_catalog` row, with a *default* qty (can be 0 — items still show so staff can adjust) and default markup %. Admin/office only. *(schema + RLS built and verified live)*
 3. **`job_line_items`** — the actual per-job cost lines. Created by copying a bundle's items onto a specific job, then freely editable (qty, markup, or add new lines not from any bundle). Admin/office full read/write. Technicians: qty + item name only, no cost/markup/price. *(schema + RLS + technician RPC built and verified live)*
+4. **`job_applied_bundles`** — one row per "bundle applied to a job" event; `job_line_items.applied_bundle_id` links back to it and cascades on delete, so removing this row is the "remove whole bundle" action. Admin/office only. *(schema + RLS built and verified live)*
 
 **Calculated fields (per line):**
 `price_inc_gst = cost_inc_gst × (1 + markup_pct / 100)`
@@ -68,10 +70,11 @@ The original `job_costs` table (from Day 1-2) is being **dropped**, not reshaped
 
 ## Not Started Yet
 
-All three Job Billing Integration tables (`bundles`, `bundle_items`, `job_line_items`) now have schema + RLS built and verified live. Everything below is UI work on top of that foundation:
+All four Job Billing Integration tables (`bundles`, `bundle_items`, `job_line_items`, `job_applied_bundles`) now have schema + RLS built and verified live. Everything below is UI work on top of that foundation:
 
 - Bundle list/create/edit UI
-- "Apply bundle to job" action
+- "Apply bundle to job" action (creates a `job_applied_bundles` row + copies `bundle_items` onto `job_line_items`)
+- "Remove bundle" action (delete the `job_applied_bundles` row; cascade handles the line items) plus per-line delete, both at the UI level — no further schema needed
 - Job line items UI on the job detail page (editable table, live recalculation, add one-off line item)
 - Drop `job_costs` table (`DROP TABLE`) — only after `bundles`, `bundle_items`, `job_line_items` are built and verified live; see "Explicit Decision" above
 - Outlook/Microsoft 365 email integration (admin consent status unconfirmed — needs checking)
