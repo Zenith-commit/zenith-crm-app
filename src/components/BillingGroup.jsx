@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
-export default function BillingGroup({ title, items, isStaff, onChanged }) {
+export default function BillingGroup({ id, title, items, isStaff, onChanged }) {
   const [editingId, setEditingId] = useState(null)
   const [editQty, setEditQty] = useState('')
   const [editMarkup, setEditMarkup] = useState('')
@@ -39,12 +39,25 @@ export default function BillingGroup({ title, items, isStaff, onChanged }) {
     await onChanged()
   }
 
+  async function handleRemoveItem(itemId) {
+    if (!window.confirm('Remove this line item?')) return
+    const { error } = await supabase.from('job_line_items').delete().eq('id', itemId)
+    if (!error) await onChanged()
+  }
+
+  async function handleRemoveGroup() {
+    if (!window.confirm(`Remove "${title}" and all its line items? This cannot be undone.`)) return
+    const { error } = await supabase.from('job_applied_bundles').delete().eq('id', id)
+    if (!error) await onChanged()
+  }
+
   return (
     <details open>
       <summary>
         {title}
         {isStaff && ` — $${groupTotal.toFixed(2)}`}
       </summary>
+      {isStaff && id && <button onClick={handleRemoveGroup}>Remove Bundle</button>}
       <table>
         <thead>
           <tr>
@@ -103,6 +116,9 @@ export default function BillingGroup({ title, items, isStaff, onChanged }) {
                   <td>
                     <button type="button" onClick={() => startEdit(item)}>
                       Edit
+                    </button>
+                    <button type="button" onClick={() => handleRemoveItem(item.id)}>
+                      Remove
                     </button>
                   </td>
                 )}

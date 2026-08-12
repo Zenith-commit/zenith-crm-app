@@ -59,10 +59,17 @@ export default function BillingSection({ jobId, role }) {
         </div>
       )}
       {groups.map((group) => (
-        <BillingGroup key={group.id} title={group.bundle_name_snapshot} items={group.items} isStaff={isStaff} onChanged={reload} />
+        <BillingGroup
+          key={group.id}
+          id={group.id}
+          title={group.bundle_name_snapshot}
+          items={group.items}
+          isStaff={isStaff}
+          onChanged={reload}
+        />
       ))}
       {otherItems.length > 0 && (
-        <BillingGroup title="Other Items" items={otherItems} isStaff={isStaff} onChanged={reload} />
+        <BillingGroup id={null} title="Other Items" items={otherItems} isStaff={isStaff} onChanged={reload} />
       )}
       {isStaff && <AddOneOffLineItemForm jobId={jobId} onAdded={reload} />}
     </section>
