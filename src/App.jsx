@@ -11,6 +11,8 @@ import CatalogList from './pages/CatalogList'
 import CatalogNew from './pages/CatalogNew'
 import CatalogDetail from './pages/CatalogDetail'
 import BundleList from './pages/BundleList'
+import BundleNew from './pages/BundleNew'
+import BundleDetail from './pages/BundleDetail'
 
 export default function App() {
   return (
@@ -27,6 +29,8 @@ export default function App() {
         <Route path="/catalog/new" element={<CatalogNew />} />
         <Route path="/catalog/:id" element={<CatalogDetail />} />
         <Route path="/bundles" element={<BundleList />} />
+        <Route path="/bundles/new" element={<BundleNew />} />
+        <Route path="/bundles/:id" element={<BundleDetail />} />
         <Route path="*" element={<p>Page not found (yet)</p>} />
       </Route>
     </Routes>
