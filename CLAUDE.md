@@ -42,6 +42,7 @@ Three roles: `admin`, `office`, `technician`.
 - **Materials & Services catalog** (`materials_catalog` table + RLS, list/create/edit UI at `/catalog`, admin/office only) — fully built, tested, pushed to GitHub. Fields: item_number (optional/non-unique), description, item_type (material/service), price, purchase_cost, tax_rate (defaults 10% GST), price_includes_tax, active flag.
 - **`bundles` table + RLS** — reusable job-type template library, admin/office only. Fields: item_number (optional/non-unique), name, description, active flag. RLS verified live (admin insert, office update/archive, technician blocked). No UI yet — see Not Started Yet.
 - **`bundle_items` table + RLS** — line items belonging to a bundle, each referencing a `materials_catalog` row via FK, with default_qty (numeric, can be 0) and default_markup_pct. No `active` flag (line removal is a hard delete) and no sort_order column (displays in insertion order). Admin/office only. RLS verified live (admin insert, office insert+update, technician blocked with visible_count = 0). No UI yet — see Not Started Yet.
+- **`job_line_items` table + RLS + `get_my_job_line_items()` RPC** — the actual per-job billing lines (copied from a bundle or added as one-offs). Fields: job_id, materials_catalog_id (nullable, for one-off lines), item_code_snapshot, item_name_snapshot, qty, cost_inc_gst_snapshot, markup_pct, plus stored generated columns price_inc_gst and total_inc_gst. Admin/office full CRUD, same pattern as bundles/bundle_items. Technicians have zero access to the base table — they read qty + item_name_snapshot only through `get_my_job_line_items(job_id)`, a `SECURITY DEFINER` RPC mirroring `get_my_jobs()`, restricted to jobs assigned to them via the existing `technician_owns_job()` helper. RLS + RPC verified live (admin insert, office insert/update/delete, generated columns compute correctly, technician blocked on base table, technician RPC returns qty/name only for their own assigned job and nothing for a job that isn't theirs). No UI yet — see Not Started Yet. This completes the schema/RLS for all three Job Billing Integration tables.
 
 ## Current Phase: Job Billing Integration (Day 5-7)
 
@@ -51,7 +52,7 @@ Three roles: `admin`, `office`, `technician`.
 
 1. **`bundles`** — reusable job-type templates (e.g. "Concrete Roof Restoration," "Gutter Installation"). Admin/office only, shared/global library — not per-staff. *(schema + RLS built and verified live)*
 2. **`bundle_items`** — line items belonging to a bundle, each referencing a `materials_catalog` row, with a *default* qty (can be 0 — items still show so staff can adjust) and default markup %. Admin/office only. *(schema + RLS built and verified live)*
-3. **`job_line_items`** — the actual per-job cost lines. Created by copying a bundle's items onto a specific job, then freely editable (qty, markup, or add new lines not from any bundle). Admin/office full read/write. Technicians: qty + item name only, no cost/markup/price. *(not yet built)*
+3. **`job_line_items`** — the actual per-job cost lines. Created by copying a bundle's items onto a specific job, then freely editable (qty, markup, or add new lines not from any bundle). Admin/office full read/write. Technicians: qty + item name only, no cost/markup/price. *(schema + RLS + technician RPC built and verified live)*
 
 **Calculated fields (per line):**
 `price_inc_gst = cost_inc_gst × (1 + markup_pct / 100)`
@@ -66,6 +67,8 @@ The original `job_costs` table (from Day 1-2) is being **dropped**, not reshaped
 **Status: DROP not yet executed.** As of this file's last update, `job_costs` still physically exists in the live database, unused. The `DROP TABLE job_costs` command has not been run yet — this is a separate, deliberate step to be done once `bundles`, `bundle_items`, and `job_line_items` are built and verified, not before. Do not drop it as a side effect of an unrelated task.
 
 ## Not Started Yet
+
+All three Job Billing Integration tables (`bundles`, `bundle_items`, `job_line_items`) now have schema + RLS built and verified live. Everything below is UI work on top of that foundation:
 
 - Bundle list/create/edit UI
 - "Apply bundle to job" action
