@@ -1,7 +1,7 @@
 # Job Billing UI, Phase 1: Bundle Management Screens — Design Spec
 
 **Date:** 2026-08-12
-**Status:** Draft — pending review
+**Status:** Approved
 
 ## Background
 
@@ -107,7 +107,7 @@ Renders the current in-memory array of line-item rows as a table:
 | Total (inc. GST) | read-only, computed live: price × qty |
 | — | "Remove" button per row |
 
-"Add line" control at the bottom (select a material, appends a row with `default_qty = 0`, `default_markup_pct = 0` — matches the existing decision that qty can be 0 and the row still shows so staff can adjust). Footer row: **Total Cost** (`Σ purchase_cost × qty`), **Total Markup** (`Σ total_inc_gst − Σ (purchase_cost × qty)`, shown as a dollar amount), **Total Price** (`Σ total_inc_gst`).
+"Add line" control at the bottom (select a material, appends a row with `default_qty = 0`, `default_markup_pct = 0` — matches the existing decision that qty can be 0 and the row still shows so staff can adjust). Footer row: **Total Cost** (`Σ purchase_cost × qty`), **Total Markup** (both shown: dollar amount `Σ total_inc_gst − Σ (purchase_cost × qty)`, and blended percentage `(Total Markup $ / Total Cost) × 100`, guarding against a divide-by-zero when Total Cost is 0), **Total Price** (`Σ total_inc_gst`).
 
 Materials picker excludes `active = false` rows — this was flagged as a known gap during the materials_catalog phase and is implemented here for the first time.
 
