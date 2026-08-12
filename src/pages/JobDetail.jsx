@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useJob } from '../hooks/useJob'
 import JobForm from '../components/JobForm'
 import DiarySection from '../components/DiarySection'
+import BillingSection from '../components/BillingSection'
 
 export default function JobDetail() {
   const { id } = useParams()
@@ -47,6 +48,7 @@ export default function JobDetail() {
           )}
         </div>
       )}
+      <BillingSection jobId={job.id} role={profile?.role} />
       <DiarySection jobId={job.id} />
     </div>
   )
