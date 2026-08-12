@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useJobBilling } from '../hooks/useJobBilling'
 import { useActiveBundles } from '../hooks/useActiveBundles'
 import BillingGroup from './BillingGroup'
+import AddOneOffLineItemForm from './AddOneOffLineItemForm'
 
 export default function BillingSection({ jobId, role }) {
   const { groups, otherItems, loading, error, reload } = useJobBilling(jobId, role)
@@ -58,9 +59,12 @@ export default function BillingSection({ jobId, role }) {
         </div>
       )}
       {groups.map((group) => (
-        <BillingGroup key={group.id} title={group.bundle_name_snapshot} items={group.items} isStaff={isStaff} />
+        <BillingGroup key={group.id} title={group.bundle_name_snapshot} items={group.items} isStaff={isStaff} onChanged={reload} />
       ))}
-      {otherItems.length > 0 && <BillingGroup title="Other Items" items={otherItems} isStaff={isStaff} />}
+      {otherItems.length > 0 && (
+        <BillingGroup title="Other Items" items={otherItems} isStaff={isStaff} onChanged={reload} />
+      )}
+      {isStaff && <AddOneOffLineItemForm jobId={jobId} onAdded={reload} />}
     </section>
   )
 }
