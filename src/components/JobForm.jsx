@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useClients } from '../hooks/useClients'
-import { JOB_STATUSES, JOB_TYPES } from '../lib/jobConstants'
+import { JOB_STATUSES } from '../lib/jobConstants'
 
 export default function JobForm({ initialValues, onSubmit, submitLabel }) {
   const { clients } = useClients()
   const [technicians, setTechnicians] = useState([])
   const [values, setValues] = useState({
     client_id: initialValues?.client_id ?? '',
-    job_type: initialValues?.job_type ?? '',
     status: initialValues?.status ?? 'Quote',
     assigned_to: initialValues?.assigned_to ?? '',
     description: initialValues?.description ?? '',
-    quoted_price: initialValues?.quoted_price ?? '',
+    site_address: initialValues?.site_address ?? '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
@@ -36,11 +35,10 @@ export default function JobForm({ initialValues, onSubmit, submitLabel }) {
     setError(null)
     const { error } = await onSubmit({
       client_id: values.client_id,
-      job_type: values.job_type,
       status: values.status,
       assigned_to: values.assigned_to || null,
       description: values.description,
-      quoted_price: values.quoted_price === '' ? null : Number(values.quoted_price),
+      site_address: values.site_address,
     })
     setSaving(false)
     if (error) setError(error.message)
@@ -58,19 +56,6 @@ export default function JobForm({ initialValues, onSubmit, submitLabel }) {
           <option value="">Select a client</option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>{client.name}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Job Type
-        <select
-          value={values.job_type}
-          onChange={(e) => updateField('job_type', e.target.value)}
-          required
-        >
-          <option value="">Select a job type</option>
-          {JOB_TYPES.map((type) => (
-            <option key={type} value={type}>{type}</option>
           ))}
         </select>
       </label>
@@ -102,12 +87,10 @@ export default function JobForm({ initialValues, onSubmit, submitLabel }) {
         />
       </label>
       <label>
-        Quoted Price
+        Site Address
         <input
-          type="number"
-          step="0.01"
-          value={values.quoted_price}
-          onChange={(e) => updateField('quoted_price', e.target.value)}
+          value={values.site_address}
+          onChange={(e) => updateField('site_address', e.target.value)}
         />
       </label>
       {error && <p role="alert">{error}</p>}

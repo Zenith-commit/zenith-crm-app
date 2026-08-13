@@ -6,10 +6,9 @@ export default function JobRow({ job, role }) {
   return (
     <tr>
       <td><Link to={`/jobs/${job.id}`}>{job.clientName}</Link></td>
-      <td>{job.job_type}</td>
+      <td>{job.site_address || '—'}</td>
       <td>{job.status}</td>
       {isStaff && <td>{job.assignedName}</td>}
-      {isStaff && <td>{job.quotedPrice != null ? `$${job.quotedPrice}` : '—'}</td>}
     </tr>
   )
 }

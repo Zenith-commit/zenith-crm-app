@@ -32,10 +32,9 @@ export default function JobList() {
         <thead>
           <tr>
             <th>Client</th>
-            <th>Job Type</th>
+            <th>Site Address</th>
             <th>Status</th>
             {isStaff && <th>Assigned To</th>}
-            {isStaff && <th>Quoted Price</th>}
           </tr>
         </thead>
         <tbody>

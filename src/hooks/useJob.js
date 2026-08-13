@@ -23,15 +23,17 @@ export function useJob(jobId, role) {
 
       const { data: client } = await supabase
         .from('clients')
-        .select('name')
+        .select('name, phone, email, address')
         .eq('id', found.client_id)
         .single()
 
       setJob({
         ...found,
         clientName: client?.name ?? 'Unknown client',
+        clientPhone: client?.phone ?? null,
+        clientEmail: client?.email ?? null,
+        clientAddress: client?.address ?? null,
         assignedName: null,
-        quotedPrice: null,
         invoiced: null,
       })
       setLoading(false)
@@ -41,7 +43,7 @@ export function useJob(jobId, role) {
     const { data, error: jobError } = await supabase
       .from('jobs')
       .select(
-        'id, status, job_type, description, quoted_price, invoiced, client_id, assigned_to, created_at, updated_at, clients(name), assigned:users!jobs_assigned_to_fkey(full_name)'
+        'id, status, description, invoiced, client_id, assigned_to, site_address, created_at, updated_at, clients(name, phone, email, address), assigned:users!jobs_assigned_to_fkey(full_name)'
       )
       .eq('id', jobId)
       .single()
@@ -53,8 +55,10 @@ export function useJob(jobId, role) {
       setJob({
         ...data,
         clientName: data.clients?.name ?? 'Unknown client',
+        clientPhone: data.clients?.phone ?? null,
+        clientEmail: data.clients?.email ?? null,
+        clientAddress: data.clients?.address ?? null,
         assignedName: data.assigned?.full_name ?? 'Unassigned',
-        quotedPrice: data.quoted_price,
       })
     }
     setLoading(false)

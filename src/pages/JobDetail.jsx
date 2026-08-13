@@ -3,6 +3,7 @@ import { useOutletContext, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useJob } from '../hooks/useJob'
 import JobForm from '../components/JobForm'
+import ClientSiteInfoSection from '../components/ClientSiteInfoSection'
 import DiarySection from '../components/DiarySection'
 import BillingSection from '../components/BillingSection'
 
@@ -29,17 +30,13 @@ export default function JobDetail() {
 
   return (
     <div>
-      <h1>{job.clientName} — {job.job_type}</h1>
+      <h1>{job.clientName}</h1>
       {isStaff && editing ? (
         <JobForm initialValues={job} onSubmit={handleUpdate} submitLabel="Save Changes" />
       ) : (
         <div>
           <p>Status: {job.status}</p>
-          <p>Job Type: {job.job_type}</p>
           {isStaff && <p>Assigned To: {job.assignedName}</p>}
-          {isStaff && (
-            <p>Quoted Price: {job.quotedPrice != null ? `$${job.quotedPrice}` : '—'}</p>
-          )}
           <p>Description: {job.description}</p>
           {isStaff && (
             <button className="btn-primary" onClick={() => setEditing(true)}>
@@ -48,6 +45,7 @@ export default function JobDetail() {
           )}
         </div>
       )}
+      <ClientSiteInfoSection job={job} isStaff={isStaff} onSaved={reload} />
       <BillingSection jobId={job.id} role={profile?.role} />
       <DiarySection jobId={job.id} />
     </div>
