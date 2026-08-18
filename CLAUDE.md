@@ -71,15 +71,14 @@ Bundle/job totals are the sum of their line items.
 
 ## Explicit Decision — Do Not Reuse job_costs
 
-The original `job_costs` table (from Day 1-2) is being **dropped**, not reshaped or reused. It was designed around a receipt-OCR auto-extraction feature that was scoped out (workers send receipts via WhatsApp instead). Do not attempt to migrate data into it or build on top of it — build `bundles`, `bundle_items`, and `job_line_items` as fresh tables instead.
+The original `job_costs` table (from Day 1-2) was designed around a receipt-OCR auto-extraction feature that was scoped out (workers send receipts via WhatsApp instead). It was never reshaped or reused — `bundles`, `bundle_items`, and `job_line_items` were built as fresh tables instead.
 
-**Status: DROP not yet executed, but now unblocked.** As of this file's last update, `job_costs` still physically exists in the live database, unused. `bundles`, `bundle_items`, and `job_line_items` are all built and verified live, and the full Job Billing Integration feature built on top of them is complete — the precondition for dropping `job_costs` is satisfied. The `DROP TABLE job_costs` command still has not been run, and remains a separate, deliberate step to take only when explicitly asked — do not drop it as a side effect of an unrelated task.
+**Status: DROPPED.** Confirmed empty (row_count = 0) and unreferenced by any other table's foreign keys, then dropped live on 2026-08-19 (`DROP TABLE public.job_costs`, which also removed its RLS policies). Recorded in `supabase/migrations/2026-08-19_drop_job_costs.sql`. `supabase/schema/004_job_costs.sql` and `supabase/policies/005_job_costs_policies.sql` have been deleted from the fresh-install sequence to match. The `receipts` storage bucket policy (`supabase/storage/001_buckets_and_policies.sql`) was tied to the same scoped-out OCR feature and is now also unused — not touched as part of this drop, flagged here as a possible future cleanup.
 
 ## Not Started Yet
 
-Job Billing Integration (schema, RLS, bundle management UI, and Apply Bundle to Job) is fully complete — see above.
+Job Billing Integration (schema, RLS, bundle management UI, and Apply Bundle to Job) is fully complete — see above. `job_costs` table drop is also complete — see "Explicit Decision" above.
 
-- Drop `job_costs` table (`DROP TABLE`) — the three core tables it was gated on (`bundles`, `bundle_items`, `job_line_items`) have long been built and verified live, and the full feature built on top of them is now done too. Still unblocked but deliberately held as a separate step per "Explicit Decision" below — do not drop it as a side effect of an unrelated task.
 - Job number auto-generation — jobs have no user-facing job number today; format not yet decided (distinct from the optional, non-unique `item_number` already used on catalog items/bundles).
 - Hard-delete vs. archive decision for `clients` and `bundles` — current convention is soft-archive only (`active` flag) for catalog-style tables, and office can never delete `clients`/`jobs`/etc. per the RLS pattern. Whether that should ever change (e.g. a true hard-delete path for admin) hasn't been decided.
 - Outlook/Microsoft 365 email integration (admin consent status unconfirmed — needs checking)
