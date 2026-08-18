@@ -43,7 +43,7 @@ export function useJob(jobId, role) {
     const { data, error: jobError } = await supabase
       .from('jobs')
       .select(
-        'id, status, description, invoiced, client_id, assigned_to, site_address, created_at, updated_at, clients(name, phone, email, address), assigned:users!jobs_assigned_to_fkey(full_name)'
+        'id, job_number, status, description, invoiced, client_id, assigned_to, site_address, created_at, updated_at, clients(name, phone, email, address), assigned:users!jobs_assigned_to_fkey(full_name)'
       )
       .eq('id', jobId)
       .single()

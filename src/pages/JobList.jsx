@@ -31,6 +31,7 @@ export default function JobList() {
       <table>
         <thead>
           <tr>
+            <th>Job #</th>
             <th>Client</th>
             <th>Site Address</th>
             <th>Status</th>

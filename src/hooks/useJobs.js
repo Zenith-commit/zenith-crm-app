@@ -42,7 +42,7 @@ export function useJobs(role) {
       const { data, error: jobsError } = await supabase
         .from('jobs')
         .select(
-          'id, status, description, site_address, client_id, assigned_to, created_at, updated_at, clients(name), assigned:users!jobs_assigned_to_fkey(full_name)'
+          'id, job_number, status, description, site_address, client_id, assigned_to, created_at, updated_at, clients(name), assigned:users!jobs_assigned_to_fkey(full_name)'
         )
         .order('created_at', { ascending: false })
 

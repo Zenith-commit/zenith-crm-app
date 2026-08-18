@@ -3,6 +3,7 @@ import { useOutletContext, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useJob } from '../hooks/useJob'
 import JobForm from '../components/JobForm'
+import { formatJobNumber } from '../lib/jobConstants'
 import ClientSiteInfoSection from '../components/ClientSiteInfoSection'
 import DiarySection from '../components/DiarySection'
 import BillingSection from '../components/BillingSection'
@@ -30,7 +31,7 @@ export default function JobDetail() {
 
   return (
     <div>
-      <h1>{job.clientName}</h1>
+      <h1>{formatJobNumber(job.job_number)} — {job.clientName}</h1>
       {isStaff && editing ? (
         <JobForm initialValues={job} onSubmit={handleUpdate} submitLabel="Save Changes" />
       ) : (
