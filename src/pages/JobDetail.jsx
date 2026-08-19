@@ -7,6 +7,7 @@ import { formatJobNumber } from '../lib/jobConstants'
 import ClientSiteInfoSection from '../components/ClientSiteInfoSection'
 import DiarySection from '../components/DiarySection'
 import BillingSection from '../components/BillingSection'
+import CommunicationSection from '../components/CommunicationSection'
 
 export default function JobDetail() {
   const { id } = useParams()
@@ -49,6 +50,20 @@ export default function JobDetail() {
       <ClientSiteInfoSection job={job} isStaff={isStaff} onSaved={reload} />
       <BillingSection jobId={job.id} role={profile?.role} />
       <DiarySection jobId={job.id} />
+      {isStaff && (
+        <CommunicationSection
+          jobId={job.id}
+          type="email"
+          recipientDefault={job.clientEmail}
+          role={profile?.role}
+        />
+      )}
+      <CommunicationSection
+        jobId={job.id}
+        type="sms"
+        recipientDefault={job.clientPhone}
+        role={profile?.role}
+      />
     </div>
   )
 }

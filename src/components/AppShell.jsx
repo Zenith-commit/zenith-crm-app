@@ -2,6 +2,7 @@ import { Link, Outlet } from 'react-router-dom'
 import { useSession } from '../hooks/useSession'
 import { supabase } from '../lib/supabaseClient'
 import Login from '../pages/Login'
+import NotificationBell from './NotificationBell'
 import logo from '../assets/zenith-logo.png'
 
 export default function AppShell() {
@@ -22,6 +23,7 @@ export default function AppShell() {
           {profile?.role !== 'technician' && <Link to="/bundles">Bundles</Link>}
         </nav>
         <div className="app-nav-user">
+          {profile?.role && <NotificationBell role={profile.role} />}
           {profile ? (
             <span>{profile.full_name} ({profile.role})</span>
           ) : (
