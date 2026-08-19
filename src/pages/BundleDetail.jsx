@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import BundleForm from '../components/BundleForm'
 import { calcPriceIncGst, calcTotalIncGst, calcBundleTotals } from '../lib/bundleCalc'
 
 export default function BundleDetail() {
   const { id } = useParams()
+  const { profile } = useOutletContext()
+  const navigate = useNavigate()
   const [bundle, setBundle] = useState(null)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [editing, setEditing] = useState(false)
   const [archiving, setArchiving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -126,6 +130,36 @@ export default function BundleDetail() {
     if (!error) setBundle((prev) => ({ ...prev, active: false }))
   }
 
+  async function handleUnarchive() {
+    setArchiving(true)
+    const { error } = await supabase.from('bundles').update({ active: true }).eq('id', id)
+    setArchiving(false)
+    if (!error) setBundle((prev) => ({ ...prev, active: true }))
+  }
+
+  async function handleDelete() {
+    if (
+      !window.confirm(
+        `Permanently delete "${bundle.name}"? This cannot be undone.`
+      )
+    ) {
+      return
+    }
+    setDeleting(true)
+    setDeleteError(null)
+    const { error } = await supabase.from('bundles').delete().eq('id', id)
+    if (error) {
+      setDeleting(false)
+      setDeleteError(
+        error.code === '23503'
+          ? "This bundle can't be deleted because it's been applied to one or more jobs. Archive it instead."
+          : error.message
+      )
+      return
+    }
+    navigate('/bundles')
+  }
+
   if (editing) {
     return (
       <div>
@@ -146,11 +180,23 @@ export default function BundleDetail() {
       <button className="btn-primary" onClick={() => setEditing(true)}>
         Edit Bundle
       </button>
-      {bundle.active && (
+      {bundle.active ? (
         <button onClick={handleArchive} disabled={archiving}>
           {archiving ? 'Archiving...' : 'Archive'}
         </button>
+      ) : (
+        (profile?.role === 'admin' || profile?.role === 'office') && (
+          <button onClick={handleUnarchive} disabled={archiving}>
+            {archiving ? 'Unarchiving...' : 'Unarchive'}
+          </button>
+        )
       )}
+      {profile?.role === 'admin' && (
+        <button onClick={handleDelete} disabled={deleting}>
+          {deleting ? 'Deleting...' : 'Delete Permanently'}
+        </button>
+      )}
+      {deleteError && <p role="alert">{deleteError}</p>}
       <h2>Line Items</h2>
       <table>
         <thead>

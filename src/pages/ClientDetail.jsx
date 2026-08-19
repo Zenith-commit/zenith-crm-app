@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useOutletContext, useParams } from 'react-router-dom'
+import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useJobs } from '../hooks/useJobs'
 import ClientForm from '../components/ClientForm'
@@ -8,10 +8,13 @@ import JobRow from '../components/JobRow'
 export default function ClientDetail() {
   const { id } = useParams()
   const { profile } = useOutletContext()
+  const navigate = useNavigate()
   const [client, setClient] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [editing, setEditing] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState(null)
   const { jobs } = useJobs(profile?.role)
 
   useEffect(() => {
@@ -49,6 +52,27 @@ export default function ClientDetail() {
     return { error }
   }
 
+  async function handleDelete() {
+    if (
+      !window.confirm(`Permanently delete "${client.name}"? This cannot be undone.`)
+    ) {
+      return
+    }
+    setDeleting(true)
+    setDeleteError(null)
+    const { error } = await supabase.from('clients').delete().eq('id', id)
+    if (error) {
+      setDeleting(false)
+      setDeleteError(
+        error.code === '23503'
+          ? "This client can't be deleted because they have job history."
+          : error.message
+      )
+      return
+    }
+    navigate('/clients')
+  }
+
   return (
     <div>
       <h1>{client.name}</h1>
@@ -65,6 +89,12 @@ export default function ClientDetail() {
               Edit Client
             </button>
           )}
+          {profile?.role === 'admin' && (
+            <button onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Deleting...' : 'Delete Permanently'}
+            </button>
+          )}
+          {deleteError && <p role="alert">{deleteError}</p>}
         </div>
       )}
       <h2>Job History</h2>
