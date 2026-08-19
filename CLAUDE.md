@@ -92,7 +92,6 @@ Job Billing Integration (schema, RLS, bundle management UI, and Apply Bundle to 
 - Security hardening pass
 - Invoicing — real invoice generation, built from the already-real `job_line_items`/billing data, same standard as the rest of the app (not mocked). "Send to client" routes through the mocked email feature above, since email itself has no real connection. Reprioritized ahead of pilot testing.
 - Pilot testing
-- Installable mobile app (later phase, web app comes first)
 
 ## Working Style
 
