@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
+function sanitizeFileName(name) {
+  return name.replace(/[^a-zA-Z0-9.\-_]/g, '_')
+}
+
 export function useJobDiary(jobId) {
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,7 +32,7 @@ export function useJobDiary(jobId) {
     const photoPaths = []
 
     for (const file of photoFiles) {
-      const path = `${jobId}/${Date.now()}-${file.name}`
+      const path = `${jobId}/${Date.now()}-${sanitizeFileName(file.name)}`
       const { error: uploadError } = await supabase.storage
         .from('diary-photos')
         .upload(path, file)
