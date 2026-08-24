@@ -1,22 +1,6 @@
 insert into storage.buckets (id, name, public)
-values ('receipts', 'receipts', false)
-on conflict (id) do nothing;
-
-insert into storage.buckets (id, name, public)
 values ('diary-photos', 'diary-photos', false)
 on conflict (id) do nothing;
-
--- Receipts: admin + office only, matching job_costs access.
-create policy "receipts_admin_office_all" on storage.objects
-  for all
-  using (
-    bucket_id = 'receipts'
-    and public.current_app_role() in ('admin', 'office')
-  )
-  with check (
-    bucket_id = 'receipts'
-    and public.current_app_role() in ('admin', 'office')
-  );
 
 -- Diary photos: admin/office full access.
 create policy "diary_photos_admin_office_all" on storage.objects

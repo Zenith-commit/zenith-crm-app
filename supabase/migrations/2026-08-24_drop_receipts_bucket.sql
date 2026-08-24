@@ -1,0 +1,35 @@
+-- Migration run manually against the live Supabase project on
+-- 2026-08-24, dropping the unused `receipts` storage bucket.
+--
+-- The `receipts` bucket was created for the OCR-receipts feature tied
+-- to job_costs, which was scoped out (workers send receipts via
+-- WhatsApp instead) and whose job_costs table was already dropped live
+-- on 2026-08-19 (supabase/migrations/2026-08-19_drop_job_costs.sql).
+-- Confirmed via grep that nothing in src/ references the `receipts`
+-- bucket. Flagged as a possible future cleanup at the time of that
+-- drop, actioned now as part of the security hardening pass.
+--
+-- Pre-drop check run first and confirmed 0 rows, same rigor as the
+-- job_costs drop:
+--   select count(*) from storage.objects where bucket_id = 'receipts';
+--
+-- The policy drop below ran fine as plain SQL. A `delete from
+-- storage.buckets where id = 'receipts'` was attempted next and
+-- rejected by a built-in Supabase safety trigger: "Direct deletion
+-- from storage tables is not allowed. Use the Storage API instead."
+-- Confirmed via `select policyname from pg_policies where ...` that
+-- the failed delete did not roll back the already-committed policy
+-- drop -- the two statements were not in a shared transaction. The
+-- bucket itself was then deleted through the Storage dashboard UI
+-- (Storage > receipts > Delete bucket), which goes through the
+-- Storage API rather than raw SQL, and re-confirmed gone via
+-- `select id from storage.buckets where id = 'receipts';` returning
+-- zero rows.
+
+drop policy "receipts_admin_office_all" on storage.objects;
+
+-- Bucket deletion itself is NOT valid raw SQL against this project --
+-- do this step via the Supabase dashboard: Storage > receipts >
+-- Delete bucket. (Attempting `delete from storage.buckets ...` here
+-- will fail with "Direct deletion from storage tables is not allowed.
+-- Use the Storage API instead.")
