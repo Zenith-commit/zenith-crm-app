@@ -50,7 +50,13 @@ export default function JobDetail() {
       )}
       <ClientSiteInfoSection job={job} isStaff={isStaff} onSaved={reload} />
       <BillingSection jobId={job.id} role={profile?.role} />
-      {isStaff && <InvoiceSection job={job} role={profile?.role} />}
+      {isStaff && (
+        <InvoiceSection
+          job={job}
+          client={{ name: job.clientName, address: job.clientAddress }}
+          role={profile?.role}
+        />
+      )}
       <DiarySection jobId={job.id} />
       {isStaff && (
         <CommunicationSection
