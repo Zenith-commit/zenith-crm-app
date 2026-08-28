@@ -38,6 +38,8 @@ Three roles: `admin`, `office`, `technician`.
 
 The app is a client-side SPA using React Router's `BrowserRouter`, so a `vercel.json` rewrite (all paths → `index.html`) was added — without it, a hard refresh or direct link to a non-root route (e.g. `/jobs/5`) would 404 before React Router loads. Confirmed via `npm run build` producing a clean production build with no hardcoded localhost references and only the two Supabase env vars required.
 
+The first auto-deploy failed because the pushing GitHub identity wasn't recognized as a member of the Vercel team (the team is set up under Zenith's account). Fixed by adding that GitHub account to the Vercel team as a Member.
+
 ## What's Built (verified, live)
 
 - Schema, auth, RLS for core tables: `users`, `clients`, `jobs`, `job_diary`, `communications` (five of the six original Day 1-2 tables — `job_costs` was also created in Day 1-2 but is being dropped, see below)
