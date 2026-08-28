@@ -32,6 +32,12 @@ Three roles: `admin`, `office`, `technician`.
 
 `Quote → Work Order → Scheduled → Completed`
 
+## Deployment
+
+**Live on Vercel** (first deploy 2026-08-28), connected to the same Supabase project used for local dev — one environment, no separate staging/prod Supabase project yet. Vercel is connected directly to the `Zenith-commit/zenith-crm` GitHub repo: every push to `main` auto-deploys to the live site, no manual deploy step. Build command `npm run build`, output directory `dist`, env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) set in Vercel project settings, not committed to the repo.
+
+The app is a client-side SPA using React Router's `BrowserRouter`, so a `vercel.json` rewrite (all paths → `index.html`) was added — without it, a hard refresh or direct link to a non-root route (e.g. `/jobs/5`) would 404 before React Router loads. Confirmed via `npm run build` producing a clean production build with no hardcoded localhost references and only the two Supabase env vars required.
+
 ## What's Built (verified, live)
 
 - Schema, auth, RLS for core tables: `users`, `clients`, `jobs`, `job_diary`, `communications` (five of the six original Day 1-2 tables — `job_costs` was also created in Day 1-2 but is being dropped, see below)
@@ -91,7 +97,7 @@ The original `job_costs` table (from Day 1-2) was designed around a receipt-OCR 
 
 Job Billing Integration (schema, RLS, bundle management UI, and Apply Bundle to Job) is fully complete — see above. `job_costs` table drop, job number auto-generation, the hard-delete/unarchive decision for clients and bundles, the mocked email/SMS feature (satisfying both the Outlook/M365 and SMS backlog items), the security hardening pass, and invoicing are also complete — see above. The security hardening pass left one outstanding item that isn't actionable from the repo — see "Security Handoff Checklist" below.
 
-- Pilot testing
+- Pilot testing — client will test the live Vercel deployment (see "Deployment" above) and send feedback; no code/database access on their end.
 - "Send to client" for invoices (routing a generated invoice PDF through the mocked email feature), void/delete of an issued invoice, and real payment-ledger tracking are explicitly deferred invoicing follow-ups, not scheduled yet.
 
 ## Security Handoff Checklist (outside the codebase)
