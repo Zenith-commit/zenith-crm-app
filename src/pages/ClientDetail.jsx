@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
+import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useJobs } from '../hooks/useJobs'
 import ClientForm from '../components/ClientForm'
@@ -88,6 +88,11 @@ export default function ClientDetail() {
             <button className="btn-primary" onClick={() => setEditing(true)}>
               Edit Client
             </button>
+          )}
+          {isStaff && (
+            <Link className="btn-primary" to={`/jobs/new?client_id=${id}`}>
+              New Job
+            </Link>
           )}
           {profile?.role === 'admin' && (
             <button onClick={handleDelete} disabled={deleting}>

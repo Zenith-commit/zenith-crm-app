@@ -1,9 +1,11 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import JobForm from '../components/JobForm'
 
 export default function JobNew() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const clientId = searchParams.get('client_id')
 
   async function handleCreate(values) {
     const { data: { user } } = await supabase.auth.getUser()
@@ -20,7 +22,11 @@ export default function JobNew() {
   return (
     <div>
       <h1>New Job</h1>
-      <JobForm initialValues={null} onSubmit={handleCreate} submitLabel="Create Job" />
+      <JobForm
+        initialValues={clientId ? { client_id: clientId } : null}
+        onSubmit={handleCreate}
+        submitLabel="Create Job"
+      />
     </div>
   )
 }
