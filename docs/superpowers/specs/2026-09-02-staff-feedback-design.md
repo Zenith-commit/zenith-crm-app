@@ -20,7 +20,7 @@ Photo upload reuses the exact pattern already proven in `useJobDiary.js`/`DiaryS
 In scope:
 - `feedback` table + RLS
 - `feedback-photos` storage bucket + policies
-- `FeedbackIcon` component (compose dropdown, all roles) mounted in `AppShell`
+- `FeedbackIcon` component (compose dropdown, all roles) mounted in `AppShell`, including a local client-side photo preview (`URL.createObjectURL`) before/during upload — no server round-trip, no RLS impact
 - `useFeedback()` hook — submit only (insert row + upload photos)
 - `FeedbackInbox` page at `/feedback`, admin-only, listing all submissions newest-first with submitter name and any attached photos
 - `useFeedbackInbox()` hook — list/reload only, separate from the submit hook so non-admin roles never issue a query that RLS would just return empty anyway
@@ -123,6 +123,8 @@ Same asymmetry as the table: office and technician can upload but not read back 
 ## Frontend
 
 **`FeedbackIcon`** (new component, mounted in `AppShell.jsx` beside `NotificationBell`, visible to all roles): icon button toggles a dropdown panel containing the compose form only (message textarea + optional multi-file photo input + submit button). No history/list is ever shown here, for any role, including admin — this is compose-only. Submitting closes the dropdown and clears the form; errors surface inline in the panel. Uses `useFeedback()`, which exposes a single `submit({ message, photoFiles })` function (insert row + upload photos), with no `reload`/list-loading logic — mirrors the shape of `useJobDiary`'s `addEntry` half only.
+
+Selected photos get a **local preview** in the compose form before/during upload, via `URL.createObjectURL(file)` on each selected `File` — purely client-side, reads nothing back from Supabase storage, so it needs no RLS or bucket policy change (contrast with `DiarySection`'s `photoUrls` effect, which resolves *already-uploaded* photos via signed URLs — this preview only ever shows files the browser already holds locally). Preview object URLs should be revoked (`URL.revokeObjectURL`) when a file is removed from selection or the form resets, to avoid leaking memory across repeated opens of the dropdown.
 
 **`FeedbackInbox`** (new page at `/feedback`, admin-only — route added to `App.jsx`, nav link added to `AppShell.jsx` conditional on `profile?.role === 'admin'`, the inverse of the existing `!== 'technician'` conditions used for Catalog/Bundles): lists all submissions newest-first, each showing submitter name (joined via `users!feedback_submitted_by_fkey(full_name)` — safe as a direct embedded join here, unlike `communications`' `get_sender_name()` workaround, because only admin ever runs this query and admin already has unrestricted `select` on `public.users` via `users_admin_all`), message text, timestamp, and any attached photos resolved to signed URLs (mirrors `DiarySection`'s `photoUrls` resolution effect). Uses a separate `useFeedbackInbox()` hook (select + reload only, mirrors `useJobDiary`'s `reload` half only) so the list-loading logic isn't tangled with `useFeedback()`'s submit-only logic used by every role via the icon.
 
