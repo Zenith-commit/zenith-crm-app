@@ -1,9 +1,10 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import BundleForm from '../components/BundleForm'
 
 export default function BundleNew() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   async function handleCreate({ name, item_number, description, items }) {
     const { data: bundle, error: bundleError } = await supabase
@@ -33,7 +34,7 @@ export default function BundleNew() {
   return (
     <div>
       <h1>New Bundle</h1>
-      <BundleForm initialValues={null} onSubmit={handleCreate} submitLabel="Create Bundle" />
+      <BundleForm initialValues={location.state ?? null} onSubmit={handleCreate} submitLabel="Create Bundle" />
     </div>
   )
 }

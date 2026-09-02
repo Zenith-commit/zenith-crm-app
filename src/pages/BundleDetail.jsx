@@ -137,6 +137,26 @@ export default function BundleDetail() {
     if (!error) setBundle((prev) => ({ ...prev, active: true }))
   }
 
+  function handleDuplicate() {
+    navigate('/bundles/new', {
+      state: {
+        name: `Copy of ${bundle.name}`,
+        item_number: bundle.item_number,
+        description: bundle.description,
+        items: items.map((item) => ({
+          _key: item.id,
+          id: null,
+          materials_catalog_id: item.materials_catalog_id,
+          item_number: item.item_number,
+          description: item.description,
+          purchase_cost: item.purchase_cost,
+          default_qty: item.default_qty,
+          default_markup_pct: item.default_markup_pct,
+        })),
+      },
+    })
+  }
+
   async function handleDelete() {
     if (
       !window.confirm(
@@ -180,6 +200,7 @@ export default function BundleDetail() {
       <button className="btn-primary" onClick={() => setEditing(true)}>
         Edit Bundle
       </button>
+      <button onClick={handleDuplicate}>Duplicate</button>
       {bundle.active ? (
         <button onClick={handleArchive} disabled={archiving}>
           {archiving ? 'Archiving...' : 'Archive'}
