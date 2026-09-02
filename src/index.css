@@ -122,6 +122,28 @@ form textarea {
   cursor: pointer;
 }
 
+.notification-bell,
+.feedback-icon {
+  position: relative;
+}
+
+.notification-dropdown,
+.feedback-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  margin-top: 8px;
+  min-width: 280px;
+  max-width: 360px;
+  background: var(--white);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 12px;
+}
+
 .app-main {
   flex: 1;
   padding: 24px;

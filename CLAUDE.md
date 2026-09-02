@@ -102,6 +102,10 @@ Job Billing Integration (schema, RLS, bundle management UI, and Apply Bundle to 
 - Pilot testing — client will test the live Vercel deployment (see "Deployment" above) and send feedback; no code/database access on their end.
 - "Send to client" for invoices (routing a generated invoice PDF through the mocked email feature), void/delete of an issued invoice, and real payment-ledger tracking are explicitly deferred invoicing follow-ups, not scheduled yet.
 
+## Known Issues
+
+- **`FeedbackIcon` dropdown is not visually anchored correctly** — found while building the Staff Feedback feature (see `docs/superpowers/specs/2026-09-02-staff-feedback-design.md`). The compose dropdown is functionally correct (doesn't push the nav layout, submits successfully, closes on success) and its CSS (`position: relative` on `.feedback-icon`, `position: absolute; right: 0` on `.feedback-dropdown` in `src/index.css`) checked out correctly in DevTools computed styles on every individual check performed live, yet it visually renders near the top-left of the page (below the logo) instead of directly under the icon in the top-right, unlike `NotificationBell`'s dropdown which anchors correctly with the identical shared CSS rule. Root cause not yet found — parked as a cosmetic issue, not blocking. Revisit before considering this feature fully polished.
+
 ## Security Handoff Checklist (outside the codebase)
 
 Found during the security hardening pass but not actionable from the repo — needs direct action in the Supabase dashboard and/or hosting provider:
