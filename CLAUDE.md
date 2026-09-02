@@ -102,7 +102,32 @@ Job Billing Integration (schema, RLS, bundle management UI, and Apply Bundle to 
 
 - Pilot testing — client will test the live Vercel deployment (see "Deployment" above) and send feedback; no code/database access on their end.
 - "Send to client" for invoices (routing a generated invoice PDF through the mocked email feature), void/delete of an issued invoice, and real payment-ledger tracking are explicitly deferred invoicing follow-ups, not scheduled yet.
-- Staff Feedback (see above) was explicitly the first, simplest item in a larger client-requested feedback list — remaining items in that list are not yet scoped or prioritized.
+- See "Client Feedback List" below for the full post-pilot feedback triage and status of every remaining item.
+
+- **Repeat-client address auto-populate** — second item on the client's post-pilot feedback list, Phase A "quick win." Investigation established this was a mixed picture: client phone/email already never needed re-entry (read live via `client_id`, not duplicated per job), but `site_address` had zero auto-fill anywhere in job creation. No schema/RLS changes — `JobForm` (shared between job creation and editing) now derives a deduped, alphabetically-sorted list per selected client, combining `clients.address` with that client's distinct `jobs.site_address` history, rendered as a `<select>` plus a fixed "Add new address" option falling back to free text. Auto-selects only when the list is unambiguous (exactly one known address) — deliberately requires an active choice when there's more than one, since a silently-wrong auto-selected address could mean a technician driving to the wrong property. Edit mode pre-selects whichever option matches the job's current `site_address`, or falls back to "Add new address" pre-filled with the existing value rather than blanking it. `ClientDetail` also gained a staff-only "New Job" button linking to `/jobs/new?client_id=<id>`, read by `JobNew` and passed into `JobForm`'s existing `initialValues.client_id` handling — the client dropdown arrives pre-selected but stays freely editable. `ClientSiteInfoSection` (the separate inline site-address editor on `JobDetail`) is untouched. **Accepted limitations, not oversights:** dedup is exact-string-match only (no fuzzy matching); a plain `<select>` won't scale to a client with many distinct addresses (e.g. a real estate management company) — flagged because it connects to a separate, not-yet-scoped item on the client's feedback list specifically about real estate/property-management clients. Verified live (all cases from the spec's testing plan) as admin/office; technician confirmed without the New Job button. Spec: `docs/superpowers/specs/2026-09-02-repeat-client-address-design.md`; plan: `docs/superpowers/plans/2026-09-02-repeat-client-address.md`.
+
+## Client Feedback List (post-pilot, 2026-09-02)
+
+Client sent a feedback list after pilot testing (numbered 1-11 below, including the still-unresolved item). Triaged into three phases:
+
+**Phase A — quick wins:**
+1. Feedback page — done, see "What's Built" above.
+2. Repeat-client auto-populate — done, see "What's Built" above.
+3. Bundle/quote UX polish — in progress; refining what already exists, closer to ServiceM8. Not yet scoped in detail.
+4. Roof reports — held back deliberately; design/content inclusions still being finalized with Abigail before building. Will reuse the PDF generation pattern from invoicing once ready.
+
+**Phase B — moderate, new territory, each needs its own scoping (like Job Billing did):**
+5. Queue tab — already scoped: admin/office can create/rename/delete queues (like folders), a job sits in exactly one queue at a time, manual assignment only, technicians have zero access. Ready to build when we get to it.
+6. Shadow schedule — calendar UI with color-coded confirmed/unconfirmed jobs, hidden from field staff when unconfirmed. Not yet scoped in detail.
+7. Office team inbox — jobs "pop up" and stay until the assignee marks complete. Not yet scoped in detail.
+8. Field staff job requirements — SWMS, check-in/out photos. Simplified for demo level (no strict enforcement/blocking yet). Not yet scoped in detail.
+
+**Phase C — mock only, don't build real integrations (matches the "framework/vision demo" standard already used for email/SMS):**
+9. Xero reporting integration — mock it, same treatment as email/SMS. No real OAuth or live financial data pull.
+10. Hours-based auto-invoicing — simplify significantly; capture hours + running total, skip anomaly-detection logic for now.
+
+**Still unresolved:**
+11. In-CRM instant messaging — needs clarification on staff-to-staff vs. staff-to-client before this can be scoped at all.
 
 ## Known Issues
 
