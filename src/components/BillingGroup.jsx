@@ -39,6 +39,20 @@ export default function BillingGroup({ id, title, items, isStaff, onChanged }) {
     await onChanged()
   }
 
+  async function handleDuplicateItem(item) {
+    const { error } = await supabase.from('job_line_items').insert({
+      job_id: item.job_id,
+      materials_catalog_id: item.materials_catalog_id,
+      item_code_snapshot: item.item_code_snapshot,
+      item_name_snapshot: item.item_name_snapshot,
+      qty: item.qty,
+      cost_inc_gst_snapshot: item.cost_inc_gst_snapshot,
+      markup_pct: item.markup_pct,
+      applied_bundle_id: id,
+    })
+    if (!error) await onChanged()
+  }
+
   async function handleRemoveItem(itemId) {
     if (!window.confirm('Remove this line item?')) return
     const { error } = await supabase.from('job_line_items').delete().eq('id', itemId)
@@ -116,6 +130,9 @@ export default function BillingGroup({ id, title, items, isStaff, onChanged }) {
                   <td>
                     <button type="button" onClick={() => startEdit(item)}>
                       Edit
+                    </button>
+                    <button type="button" onClick={() => handleDuplicateItem(item)}>
+                      Duplicate
                     </button>
                     <button type="button" onClick={() => handleRemoveItem(item.id)}>
                       Remove

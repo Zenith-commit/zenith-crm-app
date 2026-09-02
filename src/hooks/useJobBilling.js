@@ -48,7 +48,9 @@ export function useJobBilling(jobId, role) {
         .order('applied_at'),
       supabase
         .from('job_line_items')
-        .select('id, item_name_snapshot, qty, markup_pct, price_inc_gst, total_inc_gst, applied_bundle_id')
+        .select(
+          'id, job_id, materials_catalog_id, item_code_snapshot, item_name_snapshot, qty, cost_inc_gst_snapshot, markup_pct, price_inc_gst, total_inc_gst, applied_bundle_id'
+        )
         .eq('job_id', jobId)
         .order('created_at'),
     ])
