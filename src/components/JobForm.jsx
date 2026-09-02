@@ -15,6 +15,8 @@ export default function JobForm({ initialValues, onSubmit, submitLabel }) {
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [knownAddresses, setKnownAddresses] = useState([])
+  const [addressChoice, setAddressChoice] = useState('__new__')
 
   useEffect(() => {
     supabase
@@ -24,6 +26,45 @@ export default function JobForm({ initialValues, onSubmit, submitLabel }) {
       .order('full_name')
       .then(({ data }) => setTechnicians(data ?? []))
   }, [])
+
+  useEffect(() => {
+    if (!values.client_id) {
+      setKnownAddresses([])
+      setAddressChoice('__new__')
+      return
+    }
+
+    let cancelled = false
+    supabase
+      .from('jobs')
+      .select('site_address')
+      .eq('client_id', values.client_id)
+      .not('site_address', 'is', null)
+      .neq('site_address', '')
+      .then(({ data }) => {
+        if (cancelled) return
+        const client = clients.find((c) => c.id === values.client_id)
+        const combined = new Set((data ?? []).map((row) => row.site_address))
+        if (client?.address) combined.add(client.address)
+        const sorted = [...combined].sort()
+        setKnownAddresses(sorted)
+
+        if (initialValues?.site_address && sorted.includes(initialValues.site_address)) {
+          setAddressChoice(initialValues.site_address)
+          updateField('site_address', initialValues.site_address)
+        } else if (sorted.length === 1) {
+          setAddressChoice(sorted[0])
+          updateField('site_address', sorted[0])
+        } else {
+          setAddressChoice('__new__')
+          updateField('site_address', initialValues?.site_address ?? '')
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [values.client_id, clients, initialValues])
 
   function updateField(field, value) {
     setValues((prev) => ({ ...prev, [field]: value }))
@@ -88,11 +129,36 @@ export default function JobForm({ initialValues, onSubmit, submitLabel }) {
       </label>
       <label>
         Site Address
-        <input
-          value={values.site_address}
-          onChange={(e) => updateField('site_address', e.target.value)}
-        />
+        {knownAddresses.length === 0 ? (
+          <input
+            value={values.site_address}
+            onChange={(e) => updateField('site_address', e.target.value)}
+          />
+        ) : (
+          <select
+            value={addressChoice}
+            onChange={(e) => {
+              const choice = e.target.value
+              setAddressChoice(choice)
+              updateField('site_address', choice === '__new__' ? '' : choice)
+            }}
+          >
+            {knownAddresses.map((address) => (
+              <option key={address} value={address}>{address}</option>
+            ))}
+            <option value="__new__">Add new address</option>
+          </select>
+        )}
       </label>
+      {addressChoice === '__new__' && knownAddresses.length > 0 && (
+        <label>
+          New Address
+          <input
+            value={values.site_address}
+            onChange={(e) => updateField('site_address', e.target.value)}
+          />
+        </label>
+      )}
       {error && <p role="alert">{error}</p>}
       <button className="btn-primary" type="submit" disabled={saving}>
         {saving ? 'Saving...' : submitLabel}
