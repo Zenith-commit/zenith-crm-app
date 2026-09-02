@@ -30,7 +30,10 @@ In scope:
 Out of scope (explicitly deferred / not touched):
 - `ClientSiteInfoSection`'s own site-address editing on `JobDetail` — untouched, keeps its existing "Copy from Client Address" button as-is
 - Any schema or RLS change — none needed (see below)
-- Deduping/merging near-identical addresses (e.g. minor formatting differences) — exact string match only, same as everywhere else in this app
+
+Accepted limitations (deliberate, not oversights):
+- **Dedup is exact-string-match only.** `"12 Oak St"` and `"12 Oak Street"` show as two separate entries rather than being recognized as the same address — no fuzzy/normalized matching in this phase, consistent with how this app handles text matching everywhere else.
+- **Plain `<select>` doesn't scale to a client with many distinct addresses.** A high-volume client (e.g. a real estate management company tracking many properties) could accumulate a long, unwieldy dropdown with no search/filter. Acceptable given typical client volume today, but flagged explicitly because it connects to a separate item on the client's feedback list specifically about real estate/property-management clients — this limitation may need revisiting if/when that item is scoped.
 
 ## Data model
 
