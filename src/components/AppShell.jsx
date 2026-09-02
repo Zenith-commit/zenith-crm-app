@@ -22,6 +22,7 @@ export default function AppShell() {
           <Link to="/jobs">Jobs</Link>
           {profile?.role !== 'technician' && <Link to="/catalog">Catalog</Link>}
           {profile?.role !== 'technician' && <Link to="/bundles">Bundles</Link>}
+          {profile?.role === 'admin' && <Link to="/feedback">Feedback Inbox</Link>}
         </nav>
         <div className="app-nav-user">
           {profile?.role && <NotificationBell role={profile.role} />}
