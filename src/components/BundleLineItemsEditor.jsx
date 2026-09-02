@@ -31,6 +31,15 @@ export default function BundleLineItemsEditor({ items, onItemsChange }) {
     onItemsChange(items.filter((item) => item._key !== key))
   }
 
+  function handleDuplicateLine(key) {
+    const index = items.findIndex((item) => item._key === key)
+    if (index === -1) return
+    const clone = { ...items[index], _key: newKey(), id: null }
+    const next = [...items]
+    next.splice(index + 1, 0, clone)
+    onItemsChange(next)
+  }
+
   function handleFieldChange(key, field, value) {
     onItemsChange(items.map((item) => (item._key === key ? { ...item, [field]: value } : item)))
   }
@@ -86,6 +95,9 @@ export default function BundleLineItemsEditor({ items, onItemsChange }) {
                 <td>${priceIncGst.toFixed(2)}</td>
                 <td>${totalIncGst.toFixed(2)}</td>
                 <td>
+                  <button type="button" onClick={() => handleDuplicateLine(item._key)}>
+                    Duplicate
+                  </button>
                   <button type="button" onClick={() => handleRemoveLine(item._key)}>
                     Remove
                   </button>
