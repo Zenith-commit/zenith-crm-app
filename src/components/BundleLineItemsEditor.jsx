@@ -1,5 +1,6 @@
 import { useActiveMaterials } from '../hooks/useActiveMaterials'
 import { calcPriceIncGst, calcTotalIncGst, calcBundleTotals } from '../lib/bundleCalc'
+import MaterialPicker from './MaterialPicker'
 
 let nextKey = 0
 function newKey() {
@@ -10,11 +11,7 @@ function newKey() {
 export default function BundleLineItemsEditor({ items, onItemsChange }) {
   const { materials, loading, error } = useActiveMaterials()
 
-  function handleAddLine(e) {
-    const materialId = e.target.value
-    if (!materialId) return
-    const material = materials.find((m) => m.id === materialId)
-    if (!material) return
+  function handleAddLine(material) {
     onItemsChange([
       ...items,
       {
@@ -28,7 +25,6 @@ export default function BundleLineItemsEditor({ items, onItemsChange }) {
         default_markup_pct: 0,
       },
     ])
-    e.target.value = ''
   }
 
   function handleRemoveLine(key) {
@@ -111,17 +107,12 @@ export default function BundleLineItemsEditor({ items, onItemsChange }) {
       </table>
       <label>
         Add line
-        <select defaultValue="" onChange={handleAddLine}>
-          <option value="" disabled>
-            Select a material...
-          </option>
-          {materials.map((material) => (
-            <option key={material.id} value={material.id}>
-              {material.item_number ? `${material.item_number} — ` : ''}
-              {material.description}
-            </option>
-          ))}
-        </select>
+        <MaterialPicker
+          materials={materials}
+          onSelect={handleAddLine}
+          selectedLabel=""
+          placeholder="Search materials..."
+        />
       </label>
     </div>
   )

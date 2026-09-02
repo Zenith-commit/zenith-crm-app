@@ -144,6 +144,58 @@ form textarea {
   padding: 12px;
 }
 
+.material-picker {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+}
+
+.material-picker-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.material-picker-results li {
+  border-bottom: 1px solid var(--border);
+}
+
+.material-picker-results li:last-child {
+  border-bottom: none;
+}
+
+.material-picker-results button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.material-picker-results button:hover {
+  background: var(--border);
+}
+
+.material-picker-empty {
+  padding: 6px 10px;
+  color: var(--text);
+}
+
 .app-main {
   flex: 1;
   padding: 24px;
