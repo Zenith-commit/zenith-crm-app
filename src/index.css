@@ -308,3 +308,9 @@ form textarea {
   border-left: 1px solid var(--border);
   padding-left: 24px;
 }
+
+.job-detail-actions {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 16px;
+}

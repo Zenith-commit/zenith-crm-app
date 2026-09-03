@@ -10,6 +10,7 @@ import DiarySection from '../components/DiarySection'
 import BillingSection from '../components/BillingSection'
 import InvoiceSection from '../components/InvoiceSection'
 import CommunicationSection from '../components/CommunicationSection'
+import Modal from '../components/Modal'
 
 const STAFF_TABS = ['Details', 'Job Contact', 'Billing', 'Invoicing']
 const TECHNICIAN_TABS = ['Details', 'Job Contact', 'Billing']
@@ -20,6 +21,7 @@ export default function JobDetail() {
   const { job, loading, error, reload } = useJob(id, profile?.role)
   const [editing, setEditing] = useState(false)
   const [activeTab, setActiveTab] = useState('Details')
+  const [openModal, setOpenModal] = useState(null) // null | 'email' | 'sms'
 
   if (loading) return <p>Loading...</p>
   if (error) return <p role="alert">Could not load job: {error.message}</p>
@@ -40,6 +42,16 @@ export default function JobDetail() {
   return (
     <div>
       <h1>{formatJobNumber(job.job_number)} — {job.clientName}</h1>
+      <div className="job-detail-actions">
+        {isStaff && (
+          <button type="button" className="btn-primary" onClick={() => setOpenModal('email')}>
+            Email
+          </button>
+        )}
+        <button type="button" className="btn-primary" onClick={() => setOpenModal('sms')}>
+          SMS
+        </button>
+      </div>
       <div className="job-detail-body">
         <div className="job-detail-main">
           <nav className="job-detail-tabs">
@@ -91,20 +103,26 @@ export default function JobDetail() {
           <DiarySection jobId={job.id} userId={session.user.id} />
         </aside>
       </div>
-      {isStaff && (
-        <CommunicationSection
-          jobId={job.id}
-          type="email"
-          recipientDefault={job.clientEmail}
-          role={profile?.role}
-        />
+      {openModal === 'email' && (
+        <Modal onClose={() => setOpenModal(null)}>
+          <CommunicationSection
+            jobId={job.id}
+            type="email"
+            recipientDefault={job.clientEmail}
+            role={profile?.role}
+          />
+        </Modal>
       )}
-      <CommunicationSection
-        jobId={job.id}
-        type="sms"
-        recipientDefault={job.clientPhone}
-        role={profile?.role}
-      />
+      {openModal === 'sms' && (
+        <Modal onClose={() => setOpenModal(null)}>
+          <CommunicationSection
+            jobId={job.id}
+            type="sms"
+            recipientDefault={job.clientPhone}
+            role={profile?.role}
+          />
+        </Modal>
+      )}
     </div>
   )
 }
