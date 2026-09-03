@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useJobDiary } from '../hooks/useJobDiary'
 
-export default function DiarySection({ jobId }) {
-  const { entries, loading, error, addEntry } = useJobDiary(jobId)
+export default function DiarySection({ jobId, userId }) {
+  const { entries, loading, error, addEntry } = useJobDiary(jobId, userId)
   const [entryText, setEntryText] = useState('')
   const [photoFiles, setPhotoFiles] = useState([])
   const [saving, setSaving] = useState(false)

@@ -5,7 +5,7 @@ function sanitizeFileName(name) {
   return name.replace(/[^a-zA-Z0-9.\-_]/g, '_')
 }
 
-export function useJobDiary(jobId) {
+export function useJobDiary(jobId, userId) {
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -28,7 +28,6 @@ export function useJobDiary(jobId) {
   }, [reload])
 
   async function addEntry({ entryText, photoFiles }) {
-    const { data: { user } } = await supabase.auth.getUser()
     const photoPaths = []
 
     for (const file of photoFiles) {
@@ -44,7 +43,7 @@ export function useJobDiary(jobId) {
       job_id: jobId,
       entry_text: entryText,
       photo_paths: photoPaths,
-      created_by: user.id,
+      created_by: userId,
     })
 
     if (insertError) return { error: insertError }

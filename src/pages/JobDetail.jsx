@@ -16,7 +16,7 @@ const TECHNICIAN_TABS = ['Details', 'Job Contact', 'Billing']
 
 export default function JobDetail() {
   const { id } = useParams()
-  const { profile } = useOutletContext()
+  const { profile, session } = useOutletContext()
   const { job, loading, error, reload } = useJob(id, profile?.role)
   const [editing, setEditing] = useState(false)
   const [activeTab, setActiveTab] = useState('Details')
@@ -74,7 +74,9 @@ export default function JobDetail() {
                 <ClientSiteInfoSection job={job} isStaff={isStaff} onSaved={reload} />
               </>
             )}
-            {activeTab === 'Job Contact' && <JobContactSection jobId={job.id} isStaff={isStaff} />}
+            {activeTab === 'Job Contact' && (
+              <JobContactSection jobId={job.id} isStaff={isStaff} userId={session.user.id} />
+            )}
             {activeTab === 'Billing' && <BillingSection jobId={job.id} role={profile?.role} />}
             {activeTab === 'Invoicing' && isStaff && (
               <InvoiceSection
@@ -86,7 +88,7 @@ export default function JobDetail() {
           </div>
         </div>
         <aside className="job-activity-panel">
-          <DiarySection jobId={job.id} />
+          <DiarySection jobId={job.id} userId={session.user.id} />
         </aside>
       </div>
       {isStaff && (

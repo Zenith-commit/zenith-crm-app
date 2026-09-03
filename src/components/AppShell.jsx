@@ -36,7 +36,7 @@ export default function AppShell() {
         </div>
       </header>
       <main className="app-main">
-        <Outlet context={{ profile }} />
+        <Outlet context={{ profile, session }} />
       </main>
     </div>
   )

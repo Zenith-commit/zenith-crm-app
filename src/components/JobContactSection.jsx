@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useJobContact } from '../hooks/useJobContact'
 
-export default function JobContactSection({ jobId, isStaff }) {
-  const { contact, loading, error, save, clear } = useJobContact(jobId)
+export default function JobContactSection({ jobId, isStaff, userId }) {
+  const { contact, loading, error, save, clear } = useJobContact(jobId, userId)
   const [editing, setEditing] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
