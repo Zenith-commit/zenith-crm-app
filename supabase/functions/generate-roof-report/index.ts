@@ -285,8 +285,8 @@ async function photoGrid(photoPaths: string[], serviceClient: ReturnType<typeof 
   return new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, columnWidths: [Math.round(CONTENT_WIDTH / 2), Math.round(CONTENT_WIDTH / 2)], rows });
 }
 
-Deno.serve(async (req) => {
-  if (req.method !== "POST") {
+Deno.serve(async (request) => {
+  if (request.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
 
@@ -298,7 +298,7 @@ Deno.serve(async (req) => {
   // and to make the create_roof_report RPC call later -- this is what
   // keeps that specific write gated by RLS independently of the check
   // below, per the spec's defense-in-depth requirement.
-  const authHeader = req.headers.get("Authorization") ?? "";
+  const authHeader = request.headers.get("Authorization") ?? "";
   const callerClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: authHeader } },
   });
@@ -324,7 +324,7 @@ Deno.serve(async (req) => {
 
   let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    body = await request.json();
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: { "Content-Type": "application/json" } });
   }
