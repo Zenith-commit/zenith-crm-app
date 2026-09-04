@@ -322,9 +322,28 @@ async function photoGrid(photoPaths: string[], serviceClient: ReturnType<typeof 
   return new Table({ width: { size: CONTENT_WIDTH, type: WidthType.DXA }, columnWidths: [Math.round(CONTENT_WIDTH / 2), Math.round(CONTENT_WIDTH / 2)], rows });
 }
 
+// CORS: supabase.functions.invoke() from a browser is a cross-origin
+// request (the frontend origin vs. this function's *.supabase.co
+// origin), so the browser sends a preflight OPTIONS request first and
+// requires Access-Control-Allow-Origin on every actual response --
+// including error responses, not just the success path -- or it
+// blocks the whole call client-side before the app ever sees a status
+// code or body. curl has no concept of this (CORS is a browser-only
+// enforcement mechanism), which is why every curl-based test so far
+// passed while the real browser call failed outright.
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 Deno.serve(async (request) => {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   if (request.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+    return new Response("Method not allowed", { status: 405, headers: corsHeaders });
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -342,7 +361,7 @@ Deno.serve(async (request) => {
 
   const { data: { user }, error: userError } = await callerClient.auth.getUser();
   if (userError || !user) {
-    return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "Not authenticated" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   // ---- Step 2: the Edge Function's OWN role check. RLS does not
@@ -356,19 +375,19 @@ Deno.serve(async (request) => {
     .single();
 
   if (profileError || !profile || !["admin", "office"].includes(profile.role as string)) {
-    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   let body: Record<string, unknown>;
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   const job_id = body.job_id as string;
   if (!job_id) {
-    return new Response(JSON.stringify({ error: "job_id is required" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "job_id is required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   const client_name = (body.client_name as string) ?? null;
@@ -544,7 +563,7 @@ Deno.serve(async (request) => {
     .upload(docxPath, buf, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
 
   if (uploadError) {
-    return new Response(JSON.stringify({ error: uploadError.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: uploadError.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   const { data: newReport, error: rpcError } = await callerClient.rpc("create_roof_report", {
@@ -566,15 +585,29 @@ Deno.serve(async (request) => {
   });
 
   if (rpcError) {
-    return new Response(JSON.stringify({ error: rpcError.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: rpcError.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
   const sequenceNum = (newReport as { sequence_num: number }).sequence_num;
 
+  // Content-Type is deliberately application/octet-stream here, NOT the
+  // real docx MIME type -- confirmed by reading @supabase/functions-js's
+  // actual source (FunctionsClient.ts): supabase.functions.invoke() only
+  // auto-detects a binary Blob response for exactly "application/octet-
+  // stream" or "application/pdf"; anything else (including the correct
+  // docx MIME type) falls through to response.text(), which silently
+  // mangles the binary bytes into a garbled string instead of throwing --
+  // the resulting URL.createObjectURL(data) call on that string then
+  // throws downstream, as an unhandled rejection with no visible error.
+  // The stored copy in roof-report-docs (see the .upload() call above)
+  // keeps the real docx Content-Type, since downloadReport() reaches it
+  // via a direct signed-URL navigation, not invoke() -- only this
+  // response, which invoke() actually parses, needs this workaround.
   return new Response(buf, {
     status: 200,
     headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ...corsHeaders,
+      "Content-Type": "application/octet-stream",
       "Content-Disposition": `attachment; filename="roof-report-${sequenceNum}.docx"`,
     },
   });
