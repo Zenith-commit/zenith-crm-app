@@ -35,7 +35,7 @@
 **Interfaces:**
 - Produces: table `public.job_contacts(job_id uuid primary key, first_name text, last_name text, email text, phone text, mobile text, updated_by uuid, updated_at timestamptz)`, consumed by Task 3 (`useJobContact`).
 
-- [ ] **Step 1: Write the schema file**
+- [x] **Step 1: Write the schema file**
 
 ```sql
 create table public.job_contacts (
@@ -52,7 +52,7 @@ create table public.job_contacts (
 comment on table public.job_contacts is 'A job-specific contact person (e.g. on-site tenant or foreman), separate from and independent of the linked client''s own contact info in public.clients. Editing this never updates public.clients. At most one row per job -- job_id is the primary key, so "no override set" is a missing row, not a row of nulls.';
 ```
 
-- [ ] **Step 2: Write the RLS policy file**
+- [x] **Step 2: Write the RLS policy file**
 
 ```sql
 alter table public.job_contacts enable row level security;
@@ -90,11 +90,11 @@ create policy "job_contacts_technician_select" on public.job_contacts
   );
 ```
 
-- [ ] **Step 3: Run both files against the live Supabase project**
+- [x] **Step 3: Run both files against the live Supabase project**
 
 Ask the user to open the Supabase Dashboard SQL Editor and run the contents of `supabase/schema/015_job_contacts.sql` followed by `supabase/policies/018_job_contacts_policies.sql`, then confirm both ran with no errors.
 
-- [ ] **Step 4: Look up the three test-account UUIDs**
+- [x] **Step 4: Look up the three test-account UUIDs**
 
 Ask the user to run this in the SQL Editor and report back the three ids:
 
@@ -102,7 +102,7 @@ Ask the user to run this in the SQL Editor and report back the three ids:
 select id, role from public.users where role in ('admin', 'office', 'technician');
 ```
 
-- [ ] **Step 5: Run the live RLS verification block**
+- [x] **Step 5: Run the live RLS verification block**
 
 Substitute the real UUIDs from Step 4 in place of `<ADMIN_ID>`, `<OFFICE_ID>`, `<TECH_ID>` below, then ask the user to run the whole block (it runs inside an explicit transaction with fixed test UUIDs for the scratch client/job rows it creates, and rolls back at the end, so no test rows are left behind):
 
@@ -206,7 +206,7 @@ rollback;
 
 Expected: the block completes with a `NOTICE: All job_contacts RLS checks passed.` and no unexpected `ERROR`. If any `raise exception` fires, stop and fix the corresponding policy before continuing.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add supabase/schema/015_job_contacts.sql supabase/policies/018_job_contacts_policies.sql
@@ -224,7 +224,7 @@ git commit -m "feat: add job_contacts table and RLS policies"
 **Interfaces:**
 - Produces: `Modal({ onClose, children })` — a default export React component. Renders a backdrop + centered panel with a close (`×`) button in the top-right corner; calls `onClose()` on backdrop click, `×` click, or `Escape` keydown. Consumed by Task 4.
 
-- [ ] **Step 1: Write `Modal.jsx`**
+- [x] **Step 1: Write `Modal.jsx`**
 
 ```jsx
 import { useEffect } from 'react'
@@ -251,7 +251,7 @@ export default function Modal({ onClose, children }) {
 }
 ```
 
-- [ ] **Step 2: Add modal styles to `src/index.css`**
+- [x] **Step 2: Add modal styles to `src/index.css`**
 
 Append to the end of the file:
 
@@ -290,12 +290,12 @@ Append to the end of the file:
 }
 ```
 
-- [ ] **Step 3: Verify the build compiles**
+- [x] **Step 3: Verify the build compiles**
 
 Run: `npm run build`
 Expected: build succeeds with no errors. `Modal` has no consumer yet, so there's nothing to click-test interactively until Task 4 wires it up — full interactive verification (backdrop click, `×`, Escape) happens there.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/Modal.jsx src/index.css
@@ -316,7 +316,7 @@ git commit -m "feat: add shared Modal component"
 - Consumes: `public.job_contacts` (Task 1); `supabase` client from `src/lib/supabaseClient.js`.
 - Produces: `useJobContact(jobId)` returning `{ contact, loading, error, save({ first_name, last_name, email, phone, mobile }), clear() }`, where `save`/`clear` each return `{ error }` (`null` on success). `contact` is `null` when no row exists. Not consumed by any other task in this plan, but keep this exact shape — Phase 2 may reuse it.
 
-- [ ] **Step 1: Write `useJobContact.js`**
+- [x] **Step 1: Write `useJobContact.js`**
 
 ```js
 import { useCallback, useEffect, useState } from 'react'
@@ -372,7 +372,7 @@ export function useJobContact(jobId) {
 }
 ```
 
-- [ ] **Step 2: Write `JobContactSection.jsx`**
+- [x] **Step 2: Write `JobContactSection.jsx`**
 
 ```jsx
 import { useState } from 'react'
@@ -488,7 +488,7 @@ export default function JobContactSection({ jobId, isStaff }) {
 }
 ```
 
-- [ ] **Step 3: Rewrite `JobDetail.jsx`'s body into a tab shell**
+- [x] **Step 3: Rewrite `JobDetail.jsx`'s body into a tab shell**
 
 Replace the full contents of `src/pages/JobDetail.jsx` with:
 
@@ -605,7 +605,7 @@ export default function JobDetail() {
 
 Note: Email/SMS are left rendered inline here exactly as before — Task 4 converts them to modals. This task only adds the tab shell, the Job Contact tab, and relocates `DiarySection` into the right panel.
 
-- [ ] **Step 4: Add tab/panel styles to `src/index.css`**
+- [x] **Step 4: Add tab/panel styles to `src/index.css`**
 
 Append to the end of the file:
 
@@ -666,7 +666,7 @@ Append to the end of the file:
 }
 ```
 
-- [ ] **Step 5: Manually verify in the browser**
+- [x] **Step 5: Manually verify in the browser**
 
 Start the dev server (`npm run dev`). For each of the three test accounts (admin, office, technician):
 - Open an existing job's detail page. Confirm the tab bar shows Details/Job Contact/Billing/Invoicing for admin and office, and Details/Job Contact/Billing (no Invoicing) for technician.
@@ -676,7 +676,7 @@ Start the dev server (`npm run dev`). For each of the three test accounts (admin
 - Confirm Email/SMS sections still render inline at the bottom of the page exactly as before (unchanged by this task).
 - Confirm editing the Job Contact never modifies the linked client's `phone`/`email` — spot-check the `clients` row in the Supabase Table Editor before and after.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/hooks/useJobContact.js src/components/JobContactSection.jsx src/pages/JobDetail.jsx src/index.css
@@ -694,7 +694,7 @@ git commit -m "feat: add JobDetail tab shell, right-side activity panel, and Job
 **Interfaces:**
 - Consumes: `Modal` from Task 2 (`Modal({ onClose, children })`); `CommunicationSection` unchanged.
 
-- [ ] **Step 1: Add the modal trigger buttons and replace the inline `CommunicationSection` mounts**
+- [x] **Step 1: Add the modal trigger buttons and replace the inline `CommunicationSection` mounts**
 
 In `src/pages/JobDetail.jsx`, add the import:
 
@@ -840,7 +840,7 @@ The full component body after this change:
 }
 ```
 
-- [ ] **Step 2: Add action-bar styles to `src/index.css`**
+- [x] **Step 2: Add action-bar styles to `src/index.css`**
 
 Append to the end of the file:
 
@@ -852,7 +852,7 @@ Append to the end of the file:
 }
 ```
 
-- [ ] **Step 3: Manually verify in the browser**
+- [x] **Step 3: Manually verify in the browser**
 
 For each of the three test accounts:
 - Confirm an "Email" button appears only for admin/office, and an "SMS" button appears for all three roles, both directly under the job number heading.
@@ -861,7 +861,7 @@ For each of the three test accounts:
 - As admin/office, repeat the same checks for the Email modal, including "Simulate Incoming Reply".
 - Confirm the rest of the page (tabs, right-side Diary panel) is unaffected by opening/closing a modal.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/pages/JobDetail.jsx src/index.css
