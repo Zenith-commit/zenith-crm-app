@@ -11,8 +11,9 @@ import BillingSection from '../components/BillingSection'
 import InvoiceSection from '../components/InvoiceSection'
 import CommunicationSection from '../components/CommunicationSection'
 import Modal from '../components/Modal'
+import RoofReportSection from '../components/RoofReportSection'
 
-const STAFF_TABS = ['Details', 'Job Contact', 'Billing', 'Invoicing']
+const STAFF_TABS = ['Details', 'Job Contact', 'Billing', 'Invoicing', 'Roof Report']
 const TECHNICIAN_TABS = ['Details', 'Job Contact', 'Billing']
 
 export default function JobDetail() {
@@ -97,6 +98,7 @@ export default function JobDetail() {
                 role={profile?.role}
               />
             )}
+            {activeTab === 'Roof Report' && isStaff && <RoofReportSection job={job} />}
           </div>
         </div>
         <aside className="job-activity-panel">
