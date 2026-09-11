@@ -314,3 +314,38 @@ form textarea {
   gap: 8px;
   margin: 8px 0 16px;
 }
+
+.queue-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.queue-picker label {
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+.queue-picker select {
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--navy);
+  background: rgba(250, 162, 27, 0.12);
+  border: 2px solid var(--orange);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.queue-picker select:hover {
+  background: rgba(250, 162, 27, 0.22);
+}
+
+.queue-picker select:focus {
+  outline: none;
+  border-color: var(--navy);
+}

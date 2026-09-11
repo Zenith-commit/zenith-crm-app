@@ -43,7 +43,7 @@ export function useJob(jobId, role) {
     const { data, error: jobError } = await supabase
       .from('jobs')
       .select(
-        'id, job_number, status, description, invoiced, client_id, assigned_to, site_address, created_at, updated_at, clients(name, phone, email, address), assigned:users!jobs_assigned_to_fkey(full_name)'
+        'id, job_number, status, description, invoiced, client_id, assigned_to, site_address, queue_id, created_at, updated_at, clients(name, phone, email, address), assigned:users!jobs_assigned_to_fkey(full_name), queues(name)'
       )
       .eq('id', jobId)
       .single()
@@ -59,6 +59,8 @@ export function useJob(jobId, role) {
         clientEmail: data.clients?.email ?? null,
         clientAddress: data.clients?.address ?? null,
         assignedName: data.assigned?.full_name ?? 'Unassigned',
+        queueId: data.queue_id ?? null,
+        queueName: data.queues?.name ?? null,
       })
     }
     setLoading(false)

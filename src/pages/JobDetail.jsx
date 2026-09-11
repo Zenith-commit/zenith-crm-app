@@ -12,6 +12,7 @@ import InvoiceSection from '../components/InvoiceSection'
 import CommunicationSection from '../components/CommunicationSection'
 import Modal from '../components/Modal'
 import RoofReportSection from '../components/RoofReportSection'
+import { useQueues } from '../hooks/useQueues'
 
 const STAFF_TABS = ['Details', 'Job Contact', 'Billing', 'Invoicing', 'Roof Report']
 const TECHNICIAN_TABS = ['Details', 'Job Contact', 'Billing']
@@ -20,6 +21,7 @@ export default function JobDetail() {
   const { id } = useParams()
   const { profile, session } = useOutletContext()
   const { job, loading, error, reload } = useJob(id, profile?.role)
+  const { queues } = useQueues()
   const [editing, setEditing] = useState(false)
   const [activeTab, setActiveTab] = useState('Details')
   const [openModal, setOpenModal] = useState(null) // null | 'email' | 'sms'
@@ -38,6 +40,14 @@ export default function JobDetail() {
       await reload()
     }
     return { error }
+  }
+
+  async function handleQueueChange(queueId) {
+    const { error } = await supabase
+      .from('jobs')
+      .update({ queue_id: queueId || null })
+      .eq('id', job.id)
+    if (!error) await reload()
   }
 
   return (
@@ -75,6 +85,21 @@ export default function JobDetail() {
                 ) : (
                   <div>
                     <p>Status: {job.status}</p>
+                    {isStaff && (
+                      <p className="queue-picker">
+                        <label htmlFor="job-queue-select">Queue</label>
+                        <select
+                          id="job-queue-select"
+                          value={job.queueId ?? ''}
+                          onChange={(e) => handleQueueChange(e.target.value)}
+                        >
+                          <option value="">Unqueued</option>
+                          {queues.map((queue) => (
+                            <option key={queue.id} value={queue.id}>{queue.name}</option>
+                          ))}
+                        </select>
+                      </p>
+                    )}
                     {isStaff && <p>Assigned To: {job.assignedName}</p>}
                     <p>Description: {job.description}</p>
                     {isStaff && (
