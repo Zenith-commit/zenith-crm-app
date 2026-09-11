@@ -42,7 +42,7 @@ export function useJobs(role) {
       const { data, error: jobsError } = await supabase
         .from('jobs')
         .select(
-          'id, job_number, status, description, site_address, client_id, assigned_to, created_at, updated_at, clients(name), assigned:users!jobs_assigned_to_fkey(full_name)'
+          'id, job_number, status, description, site_address, client_id, assigned_to, queue_id, created_at, updated_at, clients(name), assigned:users!jobs_assigned_to_fkey(full_name), queues(name)'
         )
         .order('created_at', { ascending: false })
 
@@ -58,6 +58,7 @@ export function useJobs(role) {
           ...job,
           clientName: job.clients?.name ?? 'Unknown client',
           assignedName: job.assigned?.full_name ?? 'Unassigned',
+          queueName: job.queues?.name ?? 'Unqueued',
         }))
       )
       setLoading(false)

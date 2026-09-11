@@ -11,6 +11,7 @@ export default function JobRow({ job, role }) {
       <td>{job.site_address || '—'}</td>
       <td>{job.status}</td>
       {isStaff && <td>{job.assignedName}</td>}
+      {isStaff && <td>{job.queueName}</td>}
     </tr>
   )
 }
