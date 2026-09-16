@@ -13,7 +13,10 @@ as $$
   select role from public.users where id = auth.uid();
 $$;
 
--- Whether the given job is assigned to the calling technician.
+-- Whether the given job is assigned to the calling technician, either
+-- directly (jobs.assigned_to) or via a confirmed schedule_entries row --
+-- the second path covers a technician scheduled for part of a multi-day,
+-- multi-technician job who isn't the job's single assigned_to value.
 -- SECURITY DEFINER so it can read public.jobs even though technicians
 -- have no direct SELECT policy on that table (jobs policies deny them
 -- row access on purpose, to keep quoted_price out of reach -- see
@@ -31,13 +34,19 @@ as $$
     select 1 from public.jobs
     where id = target_job_id
       and assigned_to = auth.uid()
+  )
+  or exists (
+    select 1 from public.schedule_entries
+    where job_id = target_job_id
+      and technician_id = auth.uid()
+      and status = 'confirmed'
   );
 $$;
 
--- Whether the calling technician has any job assigned to them for the
--- given client. Same reasoning as technician_owns_job() above --
--- clients_technician_select needs this because it can't query
--- public.jobs directly either.
+-- Whether the calling technician has any job assigned to them (directly
+-- or via a confirmed schedule entry) for the given client. Same
+-- reasoning as technician_owns_job() above -- clients_technician_select
+-- needs this because it can't query public.jobs directly either.
 create or replace function public.technician_has_job_for_client(target_client_id uuid)
 returns boolean
 language sql
@@ -49,5 +58,12 @@ as $$
     select 1 from public.jobs
     where client_id = target_client_id
       and assigned_to = auth.uid()
+  )
+  or exists (
+    select 1 from public.jobs j
+    join public.schedule_entries se on se.job_id = j.id
+    where j.client_id = target_client_id
+      and se.technician_id = auth.uid()
+      and se.status = 'confirmed'
   );
 $$;
