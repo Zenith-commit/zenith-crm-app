@@ -89,3 +89,38 @@ end;
 $$;
 
 comment on function public.confirm_schedule_entry(uuid) is 'Promotes one tentative work entry to confirmed, deletes every other tentative entry for the same job, and advances jobs.status Work Order -> Scheduled if not already there. Raises if the target row is not a tentative work entry.';
+
+-- Deletes one entry and, if it was a job's last remaining confirmed work
+-- entry, reverts jobs.status Scheduled -> Work Order. A no-op (not an
+-- error) if the caller's RLS doesn't let the delete match any row --
+-- same fail-closed shape as apply_bundle_to_job()'s silent-null pattern.
+create or replace function public.remove_schedule_entry(target_entry_id uuid)
+returns void
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  removed public.schedule_entries;
+  remaining_confirmed_work boolean;
+  job_status public.job_status;
+begin
+  delete from public.schedule_entries where id = target_entry_id returning * into removed;
+
+  if removed.entry_type = 'work' and removed.status = 'confirmed' then
+    select exists (
+      select 1 from public.schedule_entries
+      where job_id = removed.job_id and entry_type = 'work' and status = 'confirmed'
+    ) into remaining_confirmed_work;
+
+    if not remaining_confirmed_work then
+      select status into job_status from public.jobs where id = removed.job_id;
+      if job_status = 'Scheduled' then
+        update public.jobs set status = 'Work Order' where id = removed.job_id;
+      end if;
+    end if;
+  end if;
+end;
+$$;
+
+comment on function public.remove_schedule_entry(uuid) is 'Deletes one schedule entry. If it was a job''s last remaining confirmed work entry and the job is still exactly Scheduled, reverts jobs.status to Work Order. Never touches jobs.status for an inspection entry, or for a job whose status has since moved past Scheduled (e.g. Completed).';
