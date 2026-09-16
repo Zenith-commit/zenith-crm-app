@@ -56,6 +56,7 @@ export default function JobList() {
             <th>Client</th>
             <th>Site Address</th>
             <th>Status</th>
+            <th>Scheduled</th>
             {isStaff && <th>Assigned To</th>}
             {isStaff && <th>Queue</th>}
           </tr>

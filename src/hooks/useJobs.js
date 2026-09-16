@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { deriveScheduleSummary } from '../lib/jobConstants'
 
 export function useJobs(role) {
   const [jobs, setJobs] = useState([])
@@ -42,7 +43,7 @@ export function useJobs(role) {
       const { data, error: jobsError } = await supabase
         .from('jobs')
         .select(
-          'id, job_number, status, description, site_address, client_id, assigned_to, queue_id, created_at, updated_at, clients(name), assigned:users!jobs_assigned_to_fkey(full_name), queues(name)'
+          'id, job_number, status, description, site_address, client_id, assigned_to, queue_id, created_at, updated_at, clients(name), assigned:users!jobs_assigned_to_fkey(full_name), queues(name), schedule_entries(scheduled_date, start_time, status)'
         )
         .order('created_at', { ascending: false })
 
@@ -59,6 +60,7 @@ export function useJobs(role) {
           clientName: job.clients?.name ?? 'Unknown client',
           assignedName: job.assigned?.full_name ?? 'Unassigned',
           queueName: job.queues?.name ?? 'Unqueued',
+          ...deriveScheduleSummary(job.schedule_entries),
         }))
       )
       setLoading(false)
