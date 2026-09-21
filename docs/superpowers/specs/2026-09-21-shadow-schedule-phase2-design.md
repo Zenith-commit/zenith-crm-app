@@ -8,7 +8,7 @@
 
 Phase 1 shipped the `schedule_entries` table, its RLS, `create_schedule_entry()` / `confirm_schedule_entry()` / `remove_schedule_entry()`, the technician access-model extension, and a "Scheduled" column on the Jobs list. Phase 2 adds the staff-facing Dispatch Board: a click-driven calendar for booking, confirming, editing and removing schedule entries. No drag-and-drop (Phase 3).
 
-**Design-intent note for the eventual developer:** the client's ideal long-term look is the full ServiceM8-style hourly grid at every zoom level (Day, Week, 2-weeks, Month). This phase deliberately ships a simpler version - Day = hourly grid, Week = one column per day with stacked time-labelled chips, and only Day + Week views. That is a "build now, refine later" choice made with the developer handoff in mind, not a final decision on how the board should ultimately look. The unscheduled-jobs panel should also follow the client's ServiceM8 screenshot (not yet seen at the time of writing; obtain it before building that panel).
+**Design-intent note for the eventual developer:** the client's ideal long-term look is the full ServiceM8-style hourly grid at every zoom level (Day, Week, 2-weeks, Month). This phase deliberately ships a simpler version - Day = hourly grid, Week = one column per day with stacked time-labelled chips, and only Day + Week views. That is a "build now, refine later" choice made with the developer handoff in mind, not a final decision on how the board should ultimately look. The unscheduled-jobs panel follows the client's ServiceM8 screenshot (`docs/staff schedule reference.png`), see "Unscheduled panel" below.
 
 ## Scope
 
@@ -39,7 +39,7 @@ Out of scope (deferred, not scheduled):
 
 **Week view.** Monday-Sunday columns, one row per technician. Each cell lists that day's bookings as chips sorted by start time, e.g. `8:00am-4:00pm - #0012 Smith`. Overlapping chips simply stack. Chips are not positioned by hour.
 
-**Look.** Confirmed work = solid navy. Confirmed inspection = solid orange. Tentative hold = the same colour, lighter, dashed border. Every block also carries a text tag ("Inspection", "Tentative") so nothing depends on colour alone.
+**Look.** Confirmed work = solid navy. Confirmed inspection = solid orange. Tentative hold = the same colour, lighter, dashed border. Every block also carries a text tag ("Inspection", "Tentative") so nothing depends on colour alone. Each block also shows the job's site address on a third line (truncated), matching the ServiceM8 reference, which shows the suburb. Zenith stores only a free-text `site_address` (no separate suburb field), and parsing a suburb out of free text would be unreliable, so the whole address is shown; the full text is in the block's tooltip.
 
 **Technician rows.** Every `users` row with `role = 'technician'` (same query `JobForm` already uses; `users` has no active flag; office can already read all users).
 
@@ -51,7 +51,8 @@ Out of scope (deferred, not scheduled):
 - `Scheduled` with no confirmed work entry: also labelled "Needs work scheduling". Jobs moved to Scheduled by hand before Phase 1 existed have no schedule entries, and without this they would appear nowhere on the board.
 - Not shown: `Scheduled` with at least one confirmed work day (add days from the grid or the Schedule tab) and `Completed` (nothing left to book, but bookable via its Schedule tab)
 - A `Quote` job with a confirmed inspection drops off, and reappears as "Needs work scheduling" once moved to `Work Order`
-- Cards show Job #, client, site address, the label, any tentative badge, and a Book button. A text filter searches client, address and job number.
+- Layout follows the client's ServiceM8 reference screenshot (`docs/staff schedule reference.png`, the "Jobs" side panel): a dropdown (All jobs / Needs inspection / Needs work scheduling) and a search box on top; each card has a round letter badge (Q for Quote in orange, W for Work Order in navy, S for a hand-Scheduled job in navy), a coloured line down its left edge, the client name in bold with the job number right-aligned and muted, the site address, a muted one-line job description, the label, any tentative-hold badge, and a Book button. Zenith's navy/orange palette replaces ServiceM8's blue.
+- The reference also shows a "Lead source" line per card. Zenith has no lead-source field anywhere, so the job description fills that line (owner's decision, 2026-09-21). A lead-source field is a separate backlog item, not part of this phase.
 
 **Book form** (existing `Modal`; closes on x, Escape or backdrop click):
 - Job: read-only when opened from an unscheduled card or the Schedule tab. From a grid-cell click it is a searchable picker (job number, client, address) over ALL jobs, unscheduled first, Completed labelled, so a second day on a Scheduled job or a return visit on a Completed job can be booked.
