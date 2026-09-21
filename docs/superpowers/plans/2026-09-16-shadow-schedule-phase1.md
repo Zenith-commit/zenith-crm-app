@@ -34,7 +34,7 @@
 **Interfaces:**
 - Produces: types `public.schedule_entry_type` (`'inspection' | 'work'`), `public.schedule_entry_status` (`'tentative' | 'confirmed'`), and table `public.schedule_entries(id uuid, job_id uuid, technician_id uuid, entry_type public.schedule_entry_type, status public.schedule_entry_status, scheduled_date date, start_time time, end_time time, created_by uuid, created_at timestamptz)`. Consumed by Task 2 (`create_schedule_entry`), Task 3 (`confirm_schedule_entry`), Task 4 (`remove_schedule_entry`), and Task 5 (the extended `technician_owns_job()`/`technician_has_job_for_client()`/`get_my_jobs()`).
 
-- [ ] **Step 1: Write the schema file**
+- [x] **Step 1: Write the schema file**
 
 ```sql
 create type public.schedule_entry_type as enum ('inspection', 'work');
@@ -56,7 +56,7 @@ create table public.schedule_entries (
 comment on table public.schedule_entries is 'A dispatch-calendar booking: one job, one technician, one date/time range. Multiple confirmed rows per job represent a multi-day work booking. entry_type is fixed at creation from jobs.status at that moment (Quote -> inspection, else -> work) and never changes afterward. Only entry_type=work rows ever pass through tentative status -- inspection rows are always created directly as confirmed.';
 ```
 
-- [ ] **Step 2: Write the RLS policy file**
+- [x] **Step 2: Write the RLS policy file**
 
 ```sql
 alter table public.schedule_entries enable row level security;
@@ -96,11 +96,11 @@ create policy "schedule_entries_technician_select" on public.schedule_entries
   );
 ```
 
-- [ ] **Step 3: Run both files against the live Supabase project**
+- [x] **Step 3: Run both files against the live Supabase project**
 
 Ask the user to open the Supabase Dashboard SQL Editor and run the contents of `supabase/schema/018_schedule_entries.sql`, then `supabase/policies/022_schedule_entries_policies.sql`, each as its own submission, and confirm both ran with no errors.
 
-- [ ] **Step 4: Look up the three test-account UUIDs**
+- [x] **Step 4: Look up the three test-account UUIDs**
 
 Ask the user to run this and report back the three ids (skip if already known from a prior session):
 
@@ -108,7 +108,7 @@ Ask the user to run this and report back the three ids (skip if already known fr
 select id, role from public.users where role in ('admin', 'office', 'technician');
 ```
 
-- [ ] **Step 5: Run the live RLS verification block**
+- [x] **Step 5: Run the live RLS verification block**
 
 Substitute the real UUIDs in place of `<ADMIN_ID>`, `<OFFICE_ID>`, `<TECH_ID>`, then ask the user to run this whole block as its own separate submission (it rolls back at the end, so no test rows are left behind):
 
@@ -241,7 +241,7 @@ rollback;
 
 Expected: `NOTICE: All schedule_entries RLS checks passed.` and no unexpected `ERROR`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add supabase/schema/018_schedule_entries.sql supabase/policies/022_schedule_entries_policies.sql
@@ -259,7 +259,7 @@ git commit -m "feat: add schedule_entries table and RLS"
 - Consumes: `public.schedule_entries` (Task 1), `public.jobs`.
 - Produces: `public.create_schedule_entry(target_job_id uuid, target_technician_id uuid, target_date date, target_start time, target_end time) returns public.schedule_entries`. Consumed by Task 6's frontend (Phase 2/3) and by Task 3/4's verification setup (this plan calls it directly via SQL to build test fixtures).
 
-- [ ] **Step 1: Write the function**
+- [x] **Step 1: Write the function**
 
 ```sql
 -- Inserts one schedule_entries row, deciding entry_type and initial status
@@ -317,11 +317,11 @@ $$;
 comment on function public.create_schedule_entry(uuid, uuid, date, time, time) is 'Creates one schedule_entries row. Quote-stage jobs always get a directly-confirmed inspection entry. Work-Order-stage jobs get a tentative work entry, unless the job already has a confirmed work entry (a second/third day), in which case the new entry is also directly confirmed. A directly-confirmed work entry on a Work-Order-stage job advances jobs.status to Scheduled.';
 ```
 
-- [ ] **Step 2: Run the file against the live Supabase project**
+- [x] **Step 2: Run the file against the live Supabase project**
 
 Ask the user to run `supabase/policies/023_schedule_entry_functions.sql` in the SQL Editor as its own submission and confirm no errors.
 
-- [ ] **Step 3: Run the live verification block**
+- [x] **Step 3: Run the live verification block**
 
 Substitute the real `<ADMIN_ID>`, `<OFFICE_ID>`, `<TECH_ID>`, then ask the user to run this as a separate submission:
 
@@ -399,7 +399,7 @@ rollback;
 
 Expected: `NOTICE: create_schedule_entry checks passed.` and no unexpected `ERROR`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add supabase/policies/023_schedule_entry_functions.sql
@@ -417,7 +417,7 @@ git commit -m "feat: add create_schedule_entry() function"
 - Consumes: `public.schedule_entries`, `public.jobs`, `public.create_schedule_entry()` (Task 2, used only to build test fixtures).
 - Produces: `public.confirm_schedule_entry(target_entry_id uuid) returns public.schedule_entries`. Consumed by Task 6's frontend (Phase 2/3).
 
-- [ ] **Step 1: Append the function to the same file**
+- [x] **Step 1: Append the function to the same file**
 
 Add to the end of `supabase/policies/023_schedule_entry_functions.sql`:
 
@@ -461,11 +461,11 @@ $$;
 comment on function public.confirm_schedule_entry(uuid) is 'Promotes one tentative work entry to confirmed, deletes every other tentative entry for the same job, and advances jobs.status Work Order -> Scheduled if not already there. Raises if the target row is not a tentative work entry.';
 ```
 
-- [ ] **Step 2: Run the file against the live Supabase project**
+- [x] **Step 2: Run the file against the live Supabase project**
 
 Ask the user to re-run the full `supabase/policies/023_schedule_entry_functions.sql` file (both functions — `create or replace function` is safe to re-run) as its own submission and confirm no errors.
 
-- [ ] **Step 3: Run the live verification block**
+- [x] **Step 3: Run the live verification block**
 
 ```sql
 begin;
@@ -555,7 +555,7 @@ rollback;
 
 Expected: `NOTICE: confirm_schedule_entry checks passed.` and no unexpected `ERROR`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add supabase/policies/023_schedule_entry_functions.sql
@@ -573,7 +573,7 @@ git commit -m "feat: add confirm_schedule_entry() function"
 - Consumes: `public.schedule_entries`, `public.jobs`.
 - Produces: `public.remove_schedule_entry(target_entry_id uuid) returns void`. Consumed by Task 6's frontend (Phase 2/3).
 
-- [ ] **Step 1: Append the function to the same file**
+- [x] **Step 1: Append the function to the same file**
 
 ```sql
 -- Deletes one entry and, if it was a job's last remaining confirmed work
@@ -612,11 +612,11 @@ $$;
 comment on function public.remove_schedule_entry(uuid) is 'Deletes one schedule entry. If it was a job''s last remaining confirmed work entry and the job is still exactly Scheduled, reverts jobs.status to Work Order. Never touches jobs.status for an inspection entry, or for a job whose status has since moved past Scheduled (e.g. Completed).';
 ```
 
-- [ ] **Step 2: Run the file against the live Supabase project**
+- [x] **Step 2: Run the file against the live Supabase project**
 
 Ask the user to re-run the full `supabase/policies/023_schedule_entry_functions.sql` file (all three functions) as its own submission and confirm no errors.
 
-- [ ] **Step 3: Run the live verification block**
+- [x] **Step 3: Run the live verification block**
 
 ```sql
 begin;
@@ -716,7 +716,7 @@ rollback;
 
 Expected: `NOTICE: remove_schedule_entry office checks passed.` and `NOTICE: remove_schedule_entry technician no-op check passed.`, no unexpected `ERROR`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add supabase/policies/023_schedule_entry_functions.sql
@@ -736,7 +736,7 @@ git commit -m "feat: add remove_schedule_entry() function"
 - Consumes: `public.schedule_entries` (Task 1).
 - Produces: `technician_owns_job(target_job_id uuid)` and `technician_has_job_for_client(target_client_id uuid)` now also return `true` when the calling technician has a confirmed schedule entry for the job/a job for that client, in addition to the existing `assigned_to` check. `get_my_jobs()` gains three new return columns: `next_scheduled_date date`, `next_scheduled_start_time time`, `additional_scheduled_days integer`. Consumed by Task 6 (frontend display) and by every existing dependent listed in the regression test below — none of those dependents' own files need to change.
 
-- [ ] **Step 1: Update `technician_owns_job()` and `technician_has_job_for_client()` in `001_helper_function.sql`**
+- [x] **Step 1: Update `technician_owns_job()` and `technician_has_job_for_client()` in `001_helper_function.sql`**
 
 Replace the two function bodies in `supabase/policies/001_helper_function.sql` (leave `current_app_role()` untouched):
 
@@ -790,7 +790,7 @@ as $$
 $$;
 ```
 
-- [ ] **Step 2: Update `get_my_jobs()` in `004_jobs_policies.sql`**
+- [x] **Step 2: Update `get_my_jobs()` in `004_jobs_policies.sql`**
 
 Replace the `get_my_jobs()` definition in `supabase/policies/004_jobs_policies.sql`:
 
@@ -842,7 +842,7 @@ $$;
 comment on function public.get_my_jobs() is 'Returns the calling technician''s assigned jobs -- via jobs.assigned_to or a confirmed schedule_entries row -- including job_number, site_address, and the soonest confirmed date/time plus a count of any additional confirmed days, without quoted_price/job_type (both dropped from the table) or invoiced status.';
 ```
 
-- [ ] **Step 3: Write the live migration file**
+- [x] **Step 3: Write the live migration file**
 
 ```sql
 -- 2026-09-16_schedule_access_model.sql
@@ -944,7 +944,7 @@ $$;
 comment on function public.get_my_jobs() is 'Returns the calling technician''s assigned jobs -- via jobs.assigned_to or a confirmed schedule_entries row -- including job_number, site_address, and the soonest confirmed date/time plus a count of any additional confirmed days, without quoted_price/job_type (both dropped from the table) or invoiced status.';
 ```
 
-- [ ] **Step 4: Run the migration against the live Supabase project**
+- [x] **Step 4: Run the migration against the live Supabase project**
 
 Ask the user to run `supabase/migrations/2026-09-16_schedule_access_model.sql` in the SQL Editor as its own submission and confirm no errors. Then ask them to run this plain, separate `select` to independently confirm `get_my_jobs()`'s new signature is actually live (do not trust the DDL submission alone):
 
@@ -954,7 +954,7 @@ select pg_get_function_result(oid) from pg_proc where proname = 'get_my_jobs';
 
 Expected: the result string contains `next_scheduled_date date, next_scheduled_start_time time, additional_scheduled_days integer`.
 
-- [ ] **Step 5: Run the full regression verification block**
+- [x] **Step 5: Run the full regression verification block**
 
 This is the highest-blast-radius change in this phase — `technician_owns_job()` gates six existing features. Substitute `<ADMIN_ID>`, `<OFFICE_ID>`, `<TECH_ID>`, then ask the user to run this as its own separate submission:
 
@@ -1137,7 +1137,7 @@ Expected: `NOTICE: Regression fixtures created.` then `NOTICE: All technician_ow
 
 Ask the user to also manually verify the one dependent a `DO` block cannot exercise — the `diary-photos` storage bucket policies (both upload and select), which also route through `technician_owns_job()`. Using the real running app (`npm run dev`): as the technician test account, open job Y (the schedule-entry-only job from the fixtures above, or an equivalent real job where the technician has a confirmed schedule entry but is not `assigned_to`) and confirm the Diary section lets them upload and view a photo; then open a job where the technician has neither `assigned_to` nor a confirmed schedule entry and confirm the Diary section shows no upload/view access. This mirrors how the Roof Report Generator's one non-`DO`-block-testable storage check was verified in this project previously.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add supabase/policies/001_helper_function.sql supabase/policies/004_jobs_policies.sql supabase/migrations/2026-09-16_schedule_access_model.sql
@@ -1160,7 +1160,7 @@ git commit -m "feat: extend technician access model to recognize confirmed sched
 
 **Scope note:** `Dashboard.jsx` itself is not modified — it only ever rendered aggregate per-status counts (a `stat-cards` grid), never individual job rows, so there is no per-job cell there to put a date/time into. `JobList.jsx`/`JobRow.jsx` are where individual jobs are actually listed for every role today (including technicians, via the existing "Jobs" nav link), so that is where this task adds the real date/time. Flag this to the user if a literal per-job breakdown on the Dashboard page itself was actually wanted — that would be a small additional change, not part of this task as written.
 
-- [ ] **Step 1: Add the helpers to `jobConstants.js`**
+- [x] **Step 1: Add the helpers to `jobConstants.js`**
 
 Add to `src/lib/jobConstants.js`:
 
@@ -1199,7 +1199,7 @@ export function formatScheduleSummary(job) {
 }
 ```
 
-- [ ] **Step 2: Extend `useJobs.js`'s staff-role query**
+- [x] **Step 2: Extend `useJobs.js`'s staff-role query**
 
 In `src/hooks/useJobs.js`, add the import:
 
@@ -1258,7 +1258,7 @@ with:
 
 The technician branch (`get_my_jobs()` RPC) needs no change here — its rows already spread through `...job`, which now includes `next_scheduled_date`/`next_scheduled_start_time`/`additional_scheduled_days` directly from the RPC (Task 5).
 
-- [ ] **Step 3: Add the Scheduled column to `JobRow.jsx`**
+- [x] **Step 3: Add the Scheduled column to `JobRow.jsx`**
 
 Replace the full contents of `src/components/JobRow.jsx`:
 
@@ -1283,7 +1283,7 @@ export default function JobRow({ job, role }) {
 }
 ```
 
-- [ ] **Step 4: Add the Scheduled column header to `JobList.jsx`**
+- [x] **Step 4: Add the Scheduled column header to `JobList.jsx`**
 
 In `src/pages/JobList.jsx`, replace the table header:
 
@@ -1312,7 +1312,7 @@ with:
           </tr>
 ```
 
-- [ ] **Step 5: Manually verify in the browser**
+- [x] **Step 5: Manually verify in the browser**
 
 For each of the three test accounts, using real jobs with `schedule_entries` rows created via the SQL Editor (`create_schedule_entry`/`confirm_schedule_entry` from Tasks 2-3, since no UI exists yet to create them):
 - A job with one confirmed entry shows "Scheduled — {date}, {time}" with no "+N more days" suffix.
@@ -1321,7 +1321,7 @@ For each of the three test accounts, using real jobs with `schedule_entries` row
 - As technician: the Scheduled column reflects a job they're confirmed on via `schedule_entries` alone (not `assigned_to`), consistent with Task 5's access-model extension.
 - As admin/office: confirm the Jobs list's existing Queue/Assigned To columns and filters still work unchanged alongside the new column.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/lib/jobConstants.js src/hooks/useJobs.js src/components/JobRow.jsx src/pages/JobList.jsx
