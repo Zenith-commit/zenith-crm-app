@@ -40,6 +40,8 @@ Out of scope (explicitly deferred, not scheduled):
 
 ## Design decisions from this session
 
+**Amendment 2026-09-21 (Phase 2 design):** `create_schedule_entry()` now has an explicit `Completed` branch. A booking on a Completed job (a warranty / return visit) is a directly-confirmed `work` entry and leaves `jobs.status` as `Completed`. The rule above ("anything else -> work, tentative unless the job already has a confirmed work entry") therefore applies to `Work Order` and `Scheduled` only. See `docs/superpowers/specs/2026-09-21-shadow-schedule-phase2-design.md`.
+
 **Inspection vs. work entries are distinguished by an explicit `entry_type` column, set once at creation and never changed.** `entry_type` is derived from `jobs.status` *at the moment the entry is created* — `'Quote'` → `'inspection'`, anything else → `'work'` — not re-derived later if the job's status subsequently changes. This is a deliberate simplification: a job normally gets one inspection entry while at `Quote`, then (after office manually moves it to `Work Order`, unchanged existing behavior) gets work entries later. A rare re-inspection booked after the job has left `Quote` would be classified `'work'` even though it's conceptually an inspection — accepted as an edge case, not worth a more complex classifier.
 
 **Only `entry_type = 'work'` entries ever use the tentative flow.** Inspection entries are always inserted directly as `'confirmed'`. This is enforced inside `create_schedule_entry()` (see below), not left to the frontend to get right.

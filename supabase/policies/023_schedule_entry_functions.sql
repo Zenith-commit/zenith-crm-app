@@ -27,6 +27,9 @@ begin
   if job_status = 'Quote' then
     new_entry_type := 'inspection';
     new_status := 'confirmed';
+  elsif job_status = 'Completed' then
+    new_entry_type := 'work';
+    new_status := 'confirmed';
   else
     new_entry_type := 'work';
     select exists (
@@ -50,7 +53,7 @@ begin
 end;
 $$;
 
-comment on function public.create_schedule_entry(uuid, uuid, date, time, time) is 'Creates one schedule_entries row. Quote-stage jobs always get a directly-confirmed inspection entry. Work-Order-stage jobs get a tentative work entry, unless the job already has a confirmed work entry (a second/third day), in which case the new entry is also directly confirmed. A directly-confirmed work entry on a Work-Order-stage job advances jobs.status to Scheduled.';
+comment on function public.create_schedule_entry(uuid, uuid, date, time, time) is 'Creates one schedule_entries row. Quote-stage jobs always get a directly-confirmed inspection entry. Completed jobs (e.g. a warranty return visit) get a directly-confirmed work entry and their status is left as Completed. Work-Order/Scheduled-stage jobs get a tentative work entry, unless the job already has a confirmed work entry (a second/third day), in which case the new entry is also directly confirmed. A directly-confirmed work entry on a Work-Order-stage job advances jobs.status to Scheduled.';
 
 -- Promotes one tentative work entry to confirmed and drops every other
 -- tentative entry for the same job (the "pick one, drop the rest" rule).
