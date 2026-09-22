@@ -6,8 +6,8 @@ export function useJob(jobId, role) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const reload = useCallback(async () => {
-    setLoading(true)
+  const reload = useCallback(async ({ silent } = {}) => {
+    if (!silent) setLoading(true)
     setError(null)
 
     if (role === 'technician') {
