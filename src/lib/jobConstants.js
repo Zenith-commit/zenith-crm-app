@@ -46,3 +46,9 @@ export function formatScheduleSummary(job) {
 
   return `${base}${extra}`
 }
+
+export function formatJobLabel(job) {
+  const parts = [formatJobNumber(job.job_number), job.clientName]
+  if (job.site_address) parts.push(job.site_address)
+  return `${parts.join(' — ')}${job.status === 'Completed' ? ' (Completed)' : ''}`
+}
