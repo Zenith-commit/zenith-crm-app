@@ -241,7 +241,7 @@ export function classifyUnscheduled(job) {
 
 export function entryContext(entry, jobEntries, jobStatus) {
   const otherTentative = jobEntries.filter(
-    (other) => other.status === 'tentative' && other.id !== entry.id
+    (other) => other.status === 'tentative' && other.entry_type === entry.entry_type && other.id !== entry.id
   ).length
   const otherConfirmedWork = jobEntries.some(
     (other) => other.id !== entry.id && other.entry_type === 'work' && other.status === 'confirmed'
@@ -282,9 +282,16 @@ function withStatusChange(text, statusBefore, statusAfter) {
 
 export function describeBooked(entry, statusBefore, statusAfter) {
   let text
-  if (entry.entry_type === 'inspection') text = 'Booked as a confirmed inspection.'
-  else if (entry.status === 'tentative') text = 'Booked as a tentative hold.'
-  else text = 'Booked and confirmed.'
+  if (entry.status === 'tentative') {
+    text =
+      entry.entry_type === 'inspection'
+        ? 'Booked as a tentative inspection candidate.'
+        : 'Booked as a tentative hold.'
+  } else if (entry.entry_type === 'inspection') {
+    text = 'Booked as a confirmed inspection.'
+  } else {
+    text = 'Booked and confirmed.'
+  }
   return withStatusChange(text, statusBefore, statusAfter)
 }
 

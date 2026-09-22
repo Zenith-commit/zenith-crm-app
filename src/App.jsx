@@ -15,6 +15,7 @@ import BundleNew from './pages/BundleNew'
 import BundleDetail from './pages/BundleDetail'
 import FeedbackInbox from './pages/FeedbackInbox'
 import QueueList from './pages/QueueList'
+import Schedule from './pages/Schedule'
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/bundles/new" element={<BundleNew />} />
         <Route path="/bundles/:id" element={<BundleDetail />} />
         <Route path="/queues" element={<QueueList />} />
+        <Route path="/schedule" element={<Schedule />} />
         <Route path="/feedback" element={<FeedbackInbox />} />
         <Route path="*" element={<p>Page not found (yet)</p>} />
       </Route>

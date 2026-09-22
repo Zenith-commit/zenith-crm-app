@@ -13,7 +13,7 @@ export default function ScheduleEntryActions({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const { otherTentative, revertsToWorkOrder } = entryContext(entry, jobEntries, jobStatus)
-  const canConfirm = entry.entry_type === 'work' && entry.status === 'tentative'
+  const canConfirm = entry.status === 'tentative'
 
   async function handleConfirm() {
     const warning =

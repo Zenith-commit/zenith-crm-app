@@ -14,4 +14,4 @@ create table public.schedule_entries (
   created_at timestamptz not null default now()
 );
 
-comment on table public.schedule_entries is 'A dispatch-calendar booking: one job, one technician, one date/time range. Multiple confirmed rows per job represent a multi-day work booking. entry_type is fixed at creation from jobs.status at that moment (Quote -> inspection, else -> work) and never changes afterward. Only entry_type=work rows ever pass through tentative status -- inspection rows are always created directly as confirmed.';
+comment on table public.schedule_entries is 'A dispatch-calendar booking: one job, one technician, one date/time range. Multiple confirmed rows per job represent a multi-day work booking. entry_type is fixed at creation from jobs.status at that moment (Quote -> inspection, else -> work) and never changes afterward. Both inspection and work rows pass through tentative status: each is tentative unless the job already has a confirmed entry of that same entry_type, in which case the new entry is directly confirmed. Completed-status jobs are the one exception -- always a directly-confirmed work entry.';
