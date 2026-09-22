@@ -12,9 +12,10 @@ import InvoiceSection from '../components/InvoiceSection'
 import CommunicationSection from '../components/CommunicationSection'
 import Modal from '../components/Modal'
 import RoofReportSection from '../components/RoofReportSection'
+import JobScheduleSection from '../components/JobScheduleSection'
 import { useQueues } from '../hooks/useQueues'
 
-const STAFF_TABS = ['Details', 'Job Contact', 'Billing', 'Invoicing', 'Roof Report']
+const STAFF_TABS = ['Details', 'Job Contact', 'Schedule', 'Billing', 'Invoicing', 'Roof Report']
 const TECHNICIAN_TABS = ['Details', 'Job Contact', 'Billing']
 
 export default function JobDetail() {
@@ -124,6 +125,9 @@ export default function JobDetail() {
               />
             )}
             {activeTab === 'Roof Report' && isStaff && <RoofReportSection job={job} />}
+            {activeTab === 'Schedule' && isStaff && (
+              <JobScheduleSection job={job} onJobChanged={() => reload({ silent: true })} />
+            )}
           </div>
         </div>
         <aside className="job-activity-panel">
