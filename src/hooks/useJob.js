@@ -1,10 +1,18 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { deriveAssignedTechnicians } from '../lib/jobConstants'
+import { useTechnicians } from './useTechnicians'
 
 export function useJob(jobId, role) {
   const [job, setJob] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { technicians } = useTechnicians()
+
+  const technicianNameById = useMemo(() => {
+    const byId = Object.fromEntries(technicians.map((t) => [t.id, t.full_name]))
+    return (id) => byId[id]
+  }, [technicians])
 
   const reload = useCallback(async ({ silent } = {}) => {
     if (!silent) setLoading(true)
@@ -43,7 +51,7 @@ export function useJob(jobId, role) {
     const { data, error: jobError } = await supabase
       .from('jobs')
       .select(
-        'id, job_number, status, description, invoiced, client_id, assigned_to, site_address, queue_id, created_at, updated_at, clients(name, phone, email, address), assigned:users!jobs_assigned_to_fkey(full_name), queues(name)'
+        'id, job_number, status, description, invoiced, client_id, site_address, queue_id, created_at, updated_at, clients(name, phone, email, address), queues(name), schedule_entries(technician_id, scheduled_date, start_time, status)'
       )
       .eq('id', jobId)
       .single()
@@ -58,7 +66,6 @@ export function useJob(jobId, role) {
         clientPhone: data.clients?.phone ?? null,
         clientEmail: data.clients?.email ?? null,
         clientAddress: data.clients?.address ?? null,
-        assignedName: data.assigned?.full_name ?? 'Unassigned',
         queueId: data.queue_id ?? null,
         queueName: data.queues?.name ?? null,
       })
@@ -71,5 +78,10 @@ export function useJob(jobId, role) {
     reload()
   }, [reload, role])
 
-  return { job, loading, error, reload }
+  const jobWithAssigned = useMemo(() => {
+    if (!job || role === 'technician') return job
+    return { ...job, assignedName: deriveAssignedTechnicians(job.schedule_entries, technicianNameById) }
+  }, [job, role, technicianNameById])
+
+  return { job: jobWithAssigned, loading, error, reload }
 }

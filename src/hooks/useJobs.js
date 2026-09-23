@@ -1,11 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { deriveScheduleSummary } from '../lib/jobConstants'
+import { deriveAssignedTechnicians, deriveScheduleSummary } from '../lib/jobConstants'
+import { useTechnicians } from './useTechnicians'
 
 export function useJobs(role) {
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { technicians } = useTechnicians()
+
+  const technicianNameById = useMemo(() => {
+    const byId = Object.fromEntries(technicians.map((t) => [t.id, t.full_name]))
+    return (id) => byId[id]
+  }, [technicians])
 
   useEffect(() => {
     if (!role) return
@@ -43,7 +50,7 @@ export function useJobs(role) {
       const { data, error: jobsError } = await supabase
         .from('jobs')
         .select(
-          'id, job_number, status, description, site_address, client_id, assigned_to, queue_id, created_at, updated_at, clients(name), assigned:users!jobs_assigned_to_fkey(full_name), queues(name), schedule_entries(scheduled_date, start_time, status)'
+          'id, job_number, status, description, site_address, client_id, queue_id, created_at, updated_at, clients(name), queues(name), schedule_entries(technician_id, scheduled_date, start_time, status)'
         )
         .order('created_at', { ascending: false })
 
@@ -58,7 +65,6 @@ export function useJobs(role) {
         data.map((job) => ({
           ...job,
           clientName: job.clients?.name ?? 'Unknown client',
-          assignedName: job.assigned?.full_name ?? 'Unassigned',
           queueName: job.queues?.name ?? 'Unqueued',
           ...deriveScheduleSummary(job.schedule_entries),
         }))
@@ -72,5 +78,16 @@ export function useJobs(role) {
     }
   }, [role])
 
-  return { jobs, loading, error }
+  const jobsWithAssigned = useMemo(
+    () =>
+      role === 'technician'
+        ? jobs
+        : jobs.map((job) => ({
+            ...job,
+            assignedName: deriveAssignedTechnicians(job.schedule_entries, technicianNameById),
+          })),
+    [jobs, role, technicianNameById]
+  )
+
+  return { jobs: jobsWithAssigned, loading, error }
 }

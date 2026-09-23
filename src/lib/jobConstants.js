@@ -47,6 +47,21 @@ export function formatScheduleSummary(job) {
   return `${base}${extra}`
 }
 
+export function deriveAssignedTechnicians(entries, technicianNameById) {
+  const confirmed = (entries ?? [])
+    .filter((entry) => entry.status === 'confirmed')
+    .sort((a, b) => `${a.scheduled_date}T${a.start_time}`.localeCompare(`${b.scheduled_date}T${b.start_time}`))
+
+  if (confirmed.length === 0) return 'Unassigned'
+
+  const distinctIds = [...new Set(confirmed.map((entry) => entry.technician_id))]
+  const primaryName = technicianNameById(confirmed[0].technician_id) ?? 'Unknown'
+
+  return distinctIds.length === 1
+    ? primaryName
+    : `${primaryName} (+${distinctIds.length - 1} more)`
+}
+
 export function formatJobLabel(job) {
   const parts = [formatJobNumber(job.job_number), job.clientName]
   if (job.site_address) parts.push(job.site_address)
