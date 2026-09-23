@@ -504,6 +504,10 @@ form textarea {
   background: rgba(250, 162, 27, 0.15);
 }
 
+.schedule-week-cell--drop-active {
+  background: rgba(250, 162, 27, 0.3);
+}
+
 .schedule-block {
   box-sizing: border-box;
   display: flex;
@@ -578,6 +582,14 @@ form textarea {
   opacity: 0.85;
 }
 
+.schedule-block--dragging {
+  opacity: 0.4;
+}
+
+.schedule-day-cell--drop-active {
+  background: rgba(250, 162, 27, 0.3);
+}
+
 .schedule-actions {
   display: flex;
   flex-wrap: wrap;
@@ -636,6 +648,10 @@ form textarea {
 
 .unscheduled-card:last-child {
   border-bottom: none;
+}
+
+.unscheduled-card--dragging {
+  opacity: 0.4;
 }
 
 .unscheduled-card--quote {
