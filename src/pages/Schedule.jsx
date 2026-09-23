@@ -9,12 +9,16 @@ import BookingModal from '../components/BookingModal'
 import BlockDetailsModal from '../components/BlockDetailsModal'
 import {
   addDays,
+  durationFromTimes,
   formatRangeLabel,
+  hourToTime,
   parseBoardParams,
+  resolveTimes,
   startOfWeek,
   todayString,
   weekDays,
 } from '../lib/scheduleUtils'
+import { updateEntry } from '../lib/scheduleActions'
 
 function ScheduleBoard() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -57,6 +61,50 @@ function ScheduleBoard() {
   function handleEditFromDetails() {
     setBooking({ mode: 'edit', entry: selectedEntry })
     setSelectedEntry(null)
+  }
+
+  async function handleDrop(sourceData, targetData) {
+    if (sourceData?.type === 'unscheduled-job') {
+      const job = jobsById[sourceData.jobId]
+      if (!job) return
+      setBooking({
+        mode: 'book',
+        job,
+        initial: {
+          technicianId: targetData.technicianId,
+          date: targetData.date,
+          startTime: targetData.hour == null ? undefined : hourToTime(targetData.hour),
+        },
+      })
+      return
+    }
+
+    if (sourceData?.type === 'schedule-entry') {
+      const entry = entries.find((candidate) => candidate.id === sourceData.entryId)
+      if (!entry) return
+
+      let start = entry.start_time.slice(0, 5)
+      let end = entry.end_time.slice(0, 5)
+      if (targetData.hour != null) {
+        const duration = durationFromTimes(entry.start_time, entry.end_time)
+        const resolved = resolveTimes(hourToTime(targetData.hour), duration)
+        start = resolved.start
+        end = resolved.end
+      }
+
+      const { error } = await updateEntry(entry.id, {
+        technicianId: targetData.technicianId,
+        date: targetData.date,
+        start,
+        end,
+      })
+      if (error) {
+        setNotice(`Could not move booking: ${error.message}`)
+        return
+      }
+      setNotice('Booking moved.')
+      await reload()
+    }
   }
 
   async function handleChanged(message) {
@@ -120,6 +168,7 @@ function ScheduleBoard() {
                     jobsById={jobsById}
                     onCellClick={handleCellClick}
                     onBlockClick={setSelectedEntry}
+                    onDrop={handleDrop}
                   />
                 ) : (
                   <WeekGrid
@@ -129,6 +178,7 @@ function ScheduleBoard() {
                     jobsById={jobsById}
                     onCellClick={handleCellClick}
                     onBlockClick={setSelectedEntry}
+                    onDrop={handleDrop}
                   />
                 )}
               </>

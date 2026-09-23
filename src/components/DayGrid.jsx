@@ -1,13 +1,43 @@
-import { GRID_HOURS, assignLanes, blockGeometry, formatHourLabel } from '../lib/scheduleUtils'
+import { useEffect, useRef } from 'react'
+import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import { GRID_HOURS, assignLanes, blockGeometry, formatHourLabel, hourToTime } from '../lib/scheduleUtils'
 import ScheduleBlock from './ScheduleBlock'
 
 const LANE_HEIGHT = 62
 
-function hourToTime(hour) {
-  return `${String(hour).padStart(2, '0')}:00`
+function DayCell({ technicianId, date, hour, techName, onCellClick, onDrop }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    return dropTargetForElements({
+      element,
+      getData: () => ({ technicianId, date, hour }),
+      onDragEnter: () => element.classList.add('schedule-day-cell--drop-active'),
+      onDragLeave: () => element.classList.remove('schedule-day-cell--drop-active'),
+      onDrop: ({ source, self }) => {
+        element.classList.remove('schedule-day-cell--drop-active')
+        onDrop(source.data, self.data)
+      },
+    })
+  }, [technicianId, date, hour, onDrop])
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      className="schedule-day-cell"
+      data-technician-id={technicianId}
+      data-date={date}
+      data-hour={hour}
+      aria-label={`Book ${techName} at ${formatHourLabel(hour)}`}
+      onClick={() => onCellClick(technicianId, date, hourToTime(hour))}
+    />
+  )
 }
 
-export default function DayGrid({ date, technicians, entries, jobsById, onCellClick, onBlockClick }) {
+export default function DayGrid({ date, technicians, entries, jobsById, onCellClick, onBlockClick, onDrop }) {
   return (
     <div className="schedule-day">
       <div className="schedule-day-header">
@@ -29,15 +59,14 @@ export default function DayGrid({ date, technicians, entries, jobsById, onCellCl
             <div className="schedule-day-track" style={{ minHeight: laneCount * LANE_HEIGHT }}>
               <div className="schedule-day-cells">
                 {GRID_HOURS.map((hour) => (
-                  <button
+                  <DayCell
                     key={hour}
-                    type="button"
-                    className="schedule-day-cell"
-                    data-technician-id={tech.id}
-                    data-date={date}
-                    data-hour={hour}
-                    aria-label={`Book ${tech.full_name} at ${formatHourLabel(hour)}`}
-                    onClick={() => onCellClick(tech.id, date, hourToTime(hour))}
+                    technicianId={tech.id}
+                    date={date}
+                    hour={hour}
+                    techName={tech.full_name}
+                    onCellClick={onCellClick}
+                    onDrop={onDrop}
                   />
                 ))}
               </div>

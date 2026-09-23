@@ -116,6 +116,10 @@ export function formatHourLabel(hour) {
   return formatTime(`${pad2(hour)}:00`).replace(':00', '')
 }
 
+export function hourToTime(hour) {
+  return `${pad2(hour)}:00`
+}
+
 export function formatMinutes(minutes) {
   const hours = Math.floor(minutes / 60)
   const rest = minutes % 60
