@@ -1,8 +1,53 @@
-import { Fragment } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
+import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { compareEntries, formatDayLabel, todayString } from '../lib/scheduleUtils'
 import ScheduleBlock from './ScheduleBlock'
 
-export default function WeekGrid({ days, technicians, entries, jobsById, onCellClick, onBlockClick }) {
+function WeekCell({ technicianId, day, isToday, cellEntries, jobsById, onCellClick, onBlockClick, onDrop }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    return dropTargetForElements({
+      element,
+      getData: () => ({ technicianId, date: day, hour: null }),
+      onDragEnter: () => element.classList.add('schedule-week-cell--drop-active'),
+      onDragLeave: () => element.classList.remove('schedule-week-cell--drop-active'),
+      onDrop: ({ source, self }) => {
+        element.classList.remove('schedule-week-cell--drop-active')
+        onDrop(source.data, self.data)
+      },
+    })
+  }, [technicianId, day, onDrop])
+
+  return (
+    <div
+      ref={ref}
+      className={isToday ? 'schedule-week-cell schedule-week-today' : 'schedule-week-cell'}
+      tabIndex={0}
+      data-technician-id={technicianId}
+      data-date={day}
+      aria-label={`Book at ${formatDayLabel(day)}`}
+      onClick={() => onCellClick(technicianId, day, null)}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && e.key === 'Enter') onCellClick(technicianId, day, null)
+      }}
+    >
+      {cellEntries.map((entry) => (
+        <ScheduleBlock
+          key={entry.id}
+          entry={entry}
+          job={jobsById[entry.job_id]}
+          variant="chip"
+          onClick={onBlockClick}
+        />
+      ))}
+    </div>
+  )
+}
+
+export default function WeekGrid({ days, technicians, entries, jobsById, onCellClick, onBlockClick, onDrop }) {
   const today = todayString()
 
   return (
@@ -24,28 +69,17 @@ export default function WeekGrid({ days, technicians, entries, jobsById, onCellC
               .filter((entry) => entry.technician_id === tech.id && entry.scheduled_date === day)
               .sort(compareEntries)
             return (
-              <div
+              <WeekCell
                 key={day}
-                className={day === today ? 'schedule-week-cell schedule-week-today' : 'schedule-week-cell'}
-                tabIndex={0}
-                data-technician-id={tech.id}
-                data-date={day}
-                aria-label={`Book ${tech.full_name} on ${formatDayLabel(day)}`}
-                onClick={() => onCellClick(tech.id, day, null)}
-                onKeyDown={(e) => {
-                  if (e.target === e.currentTarget && e.key === 'Enter') onCellClick(tech.id, day, null)
-                }}
-              >
-                {cellEntries.map((entry) => (
-                  <ScheduleBlock
-                    key={entry.id}
-                    entry={entry}
-                    job={jobsById[entry.job_id]}
-                    variant="chip"
-                    onClick={onBlockClick}
-                  />
-                ))}
-              </div>
+                technicianId={tech.id}
+                day={day}
+                isToday={day === today}
+                cellEntries={cellEntries}
+                jobsById={jobsById}
+                onCellClick={onCellClick}
+                onBlockClick={onBlockClick}
+                onDrop={onDrop}
+              />
             )
           })}
         </Fragment>
