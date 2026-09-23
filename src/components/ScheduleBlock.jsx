@@ -1,7 +1,22 @@
+import { useEffect, useRef } from 'react'
+import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { formatJobNumber } from '../lib/jobConstants'
 import { entryTags, formatTimeRange } from '../lib/scheduleUtils'
 
 export default function ScheduleBlock({ entry, job, variant, style, onClick }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    return draggable({
+      element,
+      getInitialData: () => ({ type: 'schedule-entry', entryId: entry.id }),
+      onDragStart: () => element.classList.add('schedule-block--dragging'),
+      onDrop: () => element.classList.remove('schedule-block--dragging'),
+    })
+  }, [entry.id])
+
   const className = [
     'schedule-block',
     `schedule-block--${variant}`,
@@ -15,6 +30,8 @@ export default function ScheduleBlock({ entry, job, variant, style, onClick }) {
 
   return (
     <button
+      ref={ref}
+      draggable
       type="button"
       className={className}
       style={style}
