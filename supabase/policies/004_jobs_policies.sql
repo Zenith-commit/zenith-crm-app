@@ -64,11 +64,10 @@ as $$
     from public.schedule_entries se2
     where se2.job_id = j.id and se2.status = 'confirmed'
   ) other_count on true
-  where j.assigned_to = auth.uid()
-     or exists (
-       select 1 from public.schedule_entries se3
-       where se3.job_id = j.id and se3.technician_id = auth.uid() and se3.status = 'confirmed'
-     );
+  where exists (
+    select 1 from public.schedule_entries se3
+    where se3.job_id = j.id and se3.technician_id = auth.uid() and se3.status = 'confirmed'
+  );
 $$;
 
-comment on function public.get_my_jobs() is 'Returns the calling technician''s assigned jobs -- via jobs.assigned_to or a confirmed schedule_entries row -- including job_number, site_address, and the soonest confirmed date/time plus a count of any additional confirmed days, without quoted_price/job_type (both dropped from the table) or invoiced status.';
+comment on function public.get_my_jobs() is 'Returns the calling technician''s jobs via a confirmed schedule_entries row (jobs.assigned_to was dropped 2026-09-23, see CLAUDE.md) -- including job_number, site_address, and the soonest confirmed date/time plus a count of any additional confirmed days, without quoted_price/job_type (both dropped earlier) or invoiced status.';

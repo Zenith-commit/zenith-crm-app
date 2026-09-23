@@ -7,7 +7,6 @@ create table public.jobs (
   job_number integer not null default nextval('public.jobs_job_number_seq') unique,
   client_id uuid not null references public.clients(id),
   status public.job_status not null default 'Quote',
-  assigned_to uuid references public.users(id),
   description text,
   site_address text,
   invoiced boolean not null default false,
