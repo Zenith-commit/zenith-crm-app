@@ -1,9 +1,61 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { formatJobLabel } from '../lib/jobConstants'
 import { classifyUnscheduled } from '../lib/scheduleUtils'
 
 const TYPE_FILTERS = ['All jobs', 'Needs inspection', 'Needs work scheduling']
 const BADGE_LETTERS = { Quote: 'Q', 'Work Order': 'W', Scheduled: 'S' }
+
+function UnscheduledCard({ job, info, onBook }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    return draggable({
+      element,
+      getInitialData: () => ({ type: 'unscheduled-job', jobId: job.id }),
+      onDragStart: () => element.classList.add('unscheduled-card--dragging'),
+      onDrop: () => element.classList.remove('unscheduled-card--dragging'),
+    })
+  }, [job.id])
+
+  return (
+    <li
+      ref={ref}
+      draggable
+      className={job.status === 'Quote' ? 'unscheduled-card unscheduled-card--quote' : 'unscheduled-card'}
+      data-job-id={job.id}
+    >
+      <span className="unscheduled-badge-circle" aria-hidden="true">
+        {BADGE_LETTERS[job.status] ?? '?'}
+      </span>
+      <div className="unscheduled-card-body">
+        <div className="unscheduled-card-head">
+          <span className="unscheduled-client">{job.clientName}</span>
+          <span className="unscheduled-number">
+            #{String(job.job_number).padStart(4, '0')}
+          </span>
+        </div>
+        <div className="unscheduled-address">{job.site_address || 'No site address'}</div>
+        {job.description && (
+          <div className="unscheduled-description">{job.description}</div>
+        )}
+        <div className="unscheduled-card-foot">
+          <span className="unscheduled-label">{info.label}</span>
+          {info.tentativeCount > 0 && (
+            <span className="unscheduled-hold-badge">
+              {info.tentativeCount} tentative hold{info.tentativeCount === 1 ? '' : 's'}
+            </span>
+          )}
+          <button type="button" className="btn-primary unscheduled-book" onClick={() => onBook(job)}>
+            Book
+          </button>
+        </div>
+      </div>
+    </li>
+  )
+}
 
 export default function UnscheduledList({ jobs, onBook }) {
   const [typeFilter, setTypeFilter] = useState('All jobs')
@@ -46,46 +98,7 @@ export default function UnscheduledList({ jobs, onBook }) {
       ) : (
         <ul className="unscheduled-list">
           {cards.map(({ job, info }) => (
-            <li
-              key={job.id}
-              className={
-                job.status === 'Quote'
-                  ? 'unscheduled-card unscheduled-card--quote'
-                  : 'unscheduled-card'
-              }
-              data-job-id={job.id}
-            >
-              <span className="unscheduled-badge-circle" aria-hidden="true">
-                {BADGE_LETTERS[job.status] ?? '?'}
-              </span>
-              <div className="unscheduled-card-body">
-                <div className="unscheduled-card-head">
-                  <span className="unscheduled-client">{job.clientName}</span>
-                  <span className="unscheduled-number">
-                    #{String(job.job_number).padStart(4, '0')}
-                  </span>
-                </div>
-                <div className="unscheduled-address">{job.site_address || 'No site address'}</div>
-                {job.description && (
-                  <div className="unscheduled-description">{job.description}</div>
-                )}
-                <div className="unscheduled-card-foot">
-                  <span className="unscheduled-label">{info.label}</span>
-                  {info.tentativeCount > 0 && (
-                    <span className="unscheduled-hold-badge">
-                      {info.tentativeCount} tentative hold{info.tentativeCount === 1 ? '' : 's'}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    className="btn-primary unscheduled-book"
-                    onClick={() => onBook(job)}
-                  >
-                    Book
-                  </button>
-                </div>
-              </div>
-            </li>
+            <UnscheduledCard key={job.id} job={job} info={info} onBook={onBook} />
           ))}
         </ul>
       )}
