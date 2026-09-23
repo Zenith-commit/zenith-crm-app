@@ -45,7 +45,7 @@
 **Interfaces:**
 - Produces: `public.create_schedule_entry(uuid, uuid, date, time, time) returns public.schedule_entries` (same signature as Phase 1). New rule: `Quote` -> inspection, confirmed; `Completed` -> work, confirmed, `jobs.status` untouched; `Work Order` / `Scheduled` -> work, tentative unless the job already has a confirmed work entry (then confirmed; a directly-confirmed entry on a `Work Order` job advances it to `Scheduled`). Consumed by `scheduleActions.bookEntry` (Task 3).
 
-- [ ] **Step 1: Update the fresh-install file**
+- [x] **Step 1: Update the fresh-install file**
 
 Read `supabase/policies/023_schedule_entry_functions.sql`. In `create_schedule_entry()`, replace this block:
 
@@ -76,7 +76,7 @@ Then replace that function's `comment on function public.create_schedule_entry(.
 comment on function public.create_schedule_entry(uuid, uuid, date, time, time) is 'Creates one schedule_entries row. Quote-stage jobs always get a directly-confirmed inspection entry. Completed jobs (e.g. a warranty return visit) get a directly-confirmed work entry and their status is left as Completed. Work-Order/Scheduled-stage jobs get a tentative work entry, unless the job already has a confirmed work entry (a second/third day), in which case the new entry is also directly confirmed. A directly-confirmed work entry on a Work-Order-stage job advances jobs.status to Scheduled.';
 ```
 
-- [ ] **Step 2: Write the migration file**
+- [x] **Step 2: Write the migration file**
 
 Create `supabase/migrations/2026-09-21_create_schedule_entry_completed.sql`:
 
@@ -140,11 +140,11 @@ $$;
 comment on function public.create_schedule_entry(uuid, uuid, date, time, time) is 'Creates one schedule_entries row. Quote-stage jobs always get a directly-confirmed inspection entry. Completed jobs (e.g. a warranty return visit) get a directly-confirmed work entry and their status is left as Completed. Work-Order/Scheduled-stage jobs get a tentative work entry, unless the job already has a confirmed work entry (a second/third day), in which case the new entry is also directly confirmed. A directly-confirmed work entry on a Work-Order-stage job advances jobs.status to Scheduled.';
 ```
 
-- [ ] **Step 3: Run the migration against the live database (submission 1 of 3)**
+- [x] **Step 3: Run the migration against the live database (submission 1 of 3)**
 
 Ask the user to paste the whole contents of `supabase/migrations/2026-09-21_create_schedule_entry_completed.sql` into the Supabase SQL Editor as its own submission and confirm "Success".
 
-- [ ] **Step 4: Confirm it is really live (submission 2 of 3)**
+- [x] **Step 4: Confirm it is really live (submission 2 of 3)**
 
 Ask the user to run this plain query as its own submission and paste the result:
 
@@ -156,7 +156,7 @@ where proname = 'create_schedule_entry';
 
 Expected: one row, `has_completed_branch = true`. Do not continue if it is `false` or there is no row.
 
-- [ ] **Step 5: Run the verification block (submission 3 of 3)**
+- [x] **Step 5: Run the verification block (submission 3 of 3)**
 
 Get `<OFFICE_ID>` and `<TECH_ID>` (the ids of the office and technician test accounts; `select id, role from public.users;` if not already known), substitute them, and ask the user to run this whole block as its own submission (it rolls back, leaving nothing behind):
 
@@ -249,7 +249,7 @@ rollback;
 
 Expected: `NOTICE: create_schedule_entry Completed-branch checks passed.` and no `ERROR`. If any `raise exception` fires, stop and diagnose.
 
-- [ ] **Step 6: Record the amendment in the Phase 1 design spec**
+- [x] **Step 6: Record the amendment in the Phase 1 design spec**
 
 In `docs/superpowers/specs/2026-09-16-shadow-schedule-design.md`, directly under the `## Design decisions from this session` heading, insert this paragraph:
 
@@ -257,7 +257,7 @@ In `docs/superpowers/specs/2026-09-16-shadow-schedule-design.md`, directly under
 **Amendment 2026-09-21 (Phase 2 design):** `create_schedule_entry()` now has an explicit `Completed` branch. A booking on a Completed job (a warranty / return visit) is a directly-confirmed `work` entry and leaves `jobs.status` as `Completed`. The rule above ("anything else -> work, tentative unless the job already has a confirmed work entry") therefore applies to `Work Order` and `Scheduled` only. See `docs/superpowers/specs/2026-09-21-shadow-schedule-phase2-design.md`.
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add supabase/policies/023_schedule_entry_functions.sql supabase/migrations/2026-09-21_create_schedule_entry_completed.sql docs/superpowers/specs/2026-09-16-shadow-schedule-design.md
@@ -284,7 +284,7 @@ git commit -m "feat: handle Completed jobs explicitly in create_schedule_entry()
   - messages: `describeBooked(entry, statusBefore, statusAfter)`, `describeConfirmed(before, after)`, `describeRemoved(before, after)`
 - `jobConstants.js` gains `formatJobLabel(job)` (job has `job_number`, `clientName`, `site_address`, `status`).
 
-- [ ] **Step 1: Write the failing check script**
+- [x] **Step 1: Write the failing check script**
 
 Create `schedule-utils-check.mjs` in the repo root:
 
@@ -414,12 +414,12 @@ assert.equal(u.describeRemoved(null, null), 'Booking removed.')
 console.log('scheduleUtils checks passed')
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `node schedule-utils-check.mjs`
 Expected: FAIL with `Cannot find module ... scheduleUtils.js` (the module does not exist yet).
 
-- [ ] **Step 3: Write `src/lib/scheduleUtils.js`**
+- [x] **Step 3: Write `src/lib/scheduleUtils.js`**
 
 ```js
 export const GRID_START_HOUR = 6
@@ -721,7 +721,7 @@ export function describeRemoved(statusBefore, statusAfter) {
 }
 ```
 
-- [ ] **Step 4: Add `formatJobLabel` to `src/lib/jobConstants.js`**
+- [x] **Step 4: Add `formatJobLabel` to `src/lib/jobConstants.js`**
 
 Append at the end of the file:
 
@@ -733,14 +733,14 @@ export function formatJobLabel(job) {
 }
 ```
 
-- [ ] **Step 5: Run the check and watch it pass, in two time zones**
+- [x] **Step 5: Run the check and watch it pass, in two time zones**
 
 Run: `node schedule-utils-check.mjs`
 Expected: `scheduleUtils checks passed`
 
 Then prove the date logic is time-zone independent: `TZ=Australia/Sydney node schedule-utils-check.mjs` and `TZ=UTC node schedule-utils-check.mjs`. Both should also print `scheduleUtils checks passed`. (If this Windows shell ignores `TZ`, note that in the task report and move on; the code uses only local-date arithmetic.)
 
-- [ ] **Step 6: Delete the check script, lint, build**
+- [x] **Step 6: Delete the check script, lint, build**
 
 ```bash
 rm schedule-utils-check.mjs
@@ -750,7 +750,7 @@ npm run build
 
 Expected: no new lint warnings from these files; build succeeds.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/lib/scheduleUtils.js src/lib/jobConstants.js
@@ -776,7 +776,7 @@ git commit -m "feat: add scheduling date/time/lane/classification helpers" -m "C
   - `scheduleActions`: `bookEntry({ jobId, technicianId, date, start, end })`, `updateEntry(entryId, { technicianId, date, start, end })`, `confirmEntry(entryId)`, `removeEntry(entryId)` all resolve to `{ data, error }` and never throw; `fetchJobStatus(jobId)` resolves to the status string or `null`.
   - `useJob(...).reload({ silent: true })` reloads without flipping the page to "Loading...".
 
-- [ ] **Step 1: Write `src/hooks/useTechnicians.js`**
+- [x] **Step 1: Write `src/hooks/useTechnicians.js`**
 
 ```js
 import { useEffect, useState } from 'react'
@@ -817,7 +817,7 @@ export function useTechnicians() {
 }
 ```
 
-- [ ] **Step 2: Write `src/hooks/useScheduleBoard.js`**
+- [x] **Step 2: Write `src/hooks/useScheduleBoard.js`**
 
 ```js
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -874,7 +874,7 @@ export function useScheduleBoard(rangeStart, rangeEnd) {
 }
 ```
 
-- [ ] **Step 3: Write `src/hooks/useJobSchedule.js`**
+- [x] **Step 3: Write `src/hooks/useJobSchedule.js`**
 
 ```js
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -917,7 +917,7 @@ export function useJobSchedule(jobId) {
 }
 ```
 
-- [ ] **Step 4: Write `src/lib/scheduleActions.js`**
+- [x] **Step 4: Write `src/lib/scheduleActions.js`**
 
 ```js
 import { supabase } from './supabaseClient'
@@ -972,7 +972,7 @@ export async function fetchJobStatus(jobId) {
 }
 ```
 
-- [ ] **Step 5: Add a silent reload to `src/hooks/useJob.js`**
+- [x] **Step 5: Add a silent reload to `src/hooks/useJob.js`**
 
 Replace:
 
@@ -992,11 +992,11 @@ with:
 
 (Every existing caller invokes `reload()` with no argument, so behaviour is unchanged for them. `silent` lets the Schedule tab refresh the job's status without the whole page flashing "Loading..." and unmounting the tab.)
 
-- [ ] **Step 6: Lint and build**
+- [x] **Step 6: Lint and build**
 
 Run: `npm run lint` and `npm run build`. Expected: clean.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/hooks/useTechnicians.js src/hooks/useScheduleBoard.js src/hooks/useJobSchedule.js src/lib/scheduleActions.js src/hooks/useJob.js
@@ -1021,7 +1021,7 @@ git commit -m "feat: add schedule data hooks and action wrappers" -m "Co-Authore
   - `<WeekGrid days technicians entries jobsById onCellClick onBlockClick />`; `onCellClick(technicianId, date, null)`.
   - Every clickable cell carries `data-technician-id`, `data-date` (and `data-hour` in Day) so Phase 3's drag can attach without restructuring.
 
-- [ ] **Step 1: Write `src/components/ScheduleBlock.jsx`**
+- [x] **Step 1: Write `src/components/ScheduleBlock.jsx`**
 
 ```jsx
 import { formatJobNumber } from '../lib/jobConstants'
@@ -1059,7 +1059,7 @@ export default function ScheduleBlock({ entry, job, variant, style, onClick }) {
 }
 ```
 
-- [ ] **Step 2: Write `src/components/DayGrid.jsx`**
+- [x] **Step 2: Write `src/components/DayGrid.jsx`**
 
 ```jsx
 import { GRID_HOURS, assignLanes, blockGeometry, formatHourLabel } from '../lib/scheduleUtils'
@@ -1132,7 +1132,7 @@ export default function DayGrid({ date, technicians, entries, jobsById, onCellCl
 }
 ```
 
-- [ ] **Step 3: Write `src/components/WeekGrid.jsx`**
+- [x] **Step 3: Write `src/components/WeekGrid.jsx`**
 
 ```jsx
 import { Fragment } from 'react'
@@ -1192,7 +1192,7 @@ export default function WeekGrid({ days, technicians, entries, jobsById, onCellC
 }
 ```
 
-- [ ] **Step 4: Append the schedule styles to `src/index.css`**
+- [x] **Step 4: Append the schedule styles to `src/index.css`**
 
 ```css
 /* ---- Schedule (Dispatch Board) ---- */
@@ -1572,11 +1572,11 @@ export default function WeekGrid({ days, technicians, entries, jobsById, onCellC
 }
 ```
 
-- [ ] **Step 5: Lint and build**
+- [x] **Step 5: Lint and build**
 
 Run: `npm run lint` and `npm run build`. Expected: clean. (These components are not mounted yet; Task 7 mounts them.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/ScheduleBlock.jsx src/components/DayGrid.jsx src/components/WeekGrid.jsx src/index.css
@@ -1602,7 +1602,7 @@ git commit -m "feat: add Dispatch Board Day/Week grid components and styles" -m 
     - `entry`: the entry being edited (edit mode).
     - `onSaved(message)`: awaited after a successful save; the parent closes the modal, shows `message` and reloads.
 
-- [ ] **Step 1: Write `src/components/JobPicker.jsx`**
+- [x] **Step 1: Write `src/components/JobPicker.jsx`**
 
 ```jsx
 import { useState } from 'react'
@@ -1670,7 +1670,7 @@ export default function JobPicker({ jobs, selectedLabel, onSelect }) {
 }
 ```
 
-- [ ] **Step 2: Write `src/components/BookingModal.jsx`**
+- [x] **Step 2: Write `src/components/BookingModal.jsx`**
 
 ```jsx
 import { useState } from 'react'
@@ -1866,11 +1866,11 @@ export default function BookingModal({
 }
 ```
 
-- [ ] **Step 3: Lint and build**
+- [x] **Step 3: Lint and build**
 
 Run: `npm run lint` and `npm run build`. Expected: clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/JobPicker.jsx src/components/BookingModal.jsx
@@ -1891,7 +1891,7 @@ git commit -m "feat: add Book form modal and job picker" -m "Co-Authored-By: Cla
   - `<ScheduleEntryActions entry jobEntries jobStatus onEdit onChanged onRefresh />`: renders Confirm (tentative work entries only), Edit and Remove. `jobEntries` is every entry of that job as `{ id, entry_type, status }[]`. `onChanged(message)` is awaited after a successful confirm/remove; `onRefresh()` is awaited after a failed one (so a stale board reloads while the error stays visible).
   - `<BlockDetailsModal entry job technicianName onClose onEdit onChanged onRefresh />` (`job` is a board job; may be undefined).
 
-- [ ] **Step 1: Write `src/components/ScheduleEntryActions.jsx`**
+- [x] **Step 1: Write `src/components/ScheduleEntryActions.jsx`**
 
 ```jsx
 import { useState } from 'react'
@@ -1967,7 +1967,7 @@ export default function ScheduleEntryActions({
 }
 ```
 
-- [ ] **Step 2: Write `src/components/BlockDetailsModal.jsx`**
+- [x] **Step 2: Write `src/components/BlockDetailsModal.jsx`**
 
 ```jsx
 import { Link } from 'react-router-dom'
@@ -2020,11 +2020,11 @@ export default function BlockDetailsModal({
 }
 ```
 
-- [ ] **Step 3: Lint and build**
+- [x] **Step 3: Lint and build**
 
 Run: `npm run lint` and `npm run build`. Expected: clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/ScheduleEntryActions.jsx src/components/BlockDetailsModal.jsx
@@ -2045,7 +2045,7 @@ git commit -m "feat: add shared schedule entry actions and block details modal" 
 - Consumes: everything from Tasks 2-6.
 - Produces: the `/schedule` route (staff only). `<UnscheduledList jobs onBook />` where `onBook(job)`.
 
-- [ ] **Step 1: Write `src/components/UnscheduledList.jsx`**
+- [x] **Step 1: Write `src/components/UnscheduledList.jsx`**
 
 ```jsx
 import { useState } from 'react'
@@ -2144,7 +2144,7 @@ export default function UnscheduledList({ jobs, onBook }) {
 }
 ```
 
-- [ ] **Step 2: Write `src/pages/Schedule.jsx`**
+- [x] **Step 2: Write `src/pages/Schedule.jsx`**
 
 ```jsx
 import { useMemo, useState } from 'react'
@@ -2323,7 +2323,7 @@ export default function Schedule() {
 }
 ```
 
-- [ ] **Step 3: Add the route in `src/App.jsx`**
+- [x] **Step 3: Add the route in `src/App.jsx`**
 
 Add the import after `import QueueList from './pages/QueueList'`:
 
@@ -2337,7 +2337,7 @@ and the route after `<Route path="/queues" element={<QueueList />} />`:
         <Route path="/schedule" element={<Schedule />} />
 ```
 
-- [ ] **Step 4: Add the nav link in `src/components/AppShell.jsx`**
+- [x] **Step 4: Add the nav link in `src/components/AppShell.jsx`**
 
 After the Queues link line, add:
 
@@ -2345,15 +2345,15 @@ After the Queues link line, add:
           {profile?.role !== 'technician' && <Link to="/schedule">Schedule</Link>}
 ```
 
-- [ ] **Step 5: Compare the panel to the ServiceM8 reference**
+- [x] **Step 5: Compare the panel to the ServiceM8 reference**
 
 The reference screenshot is `docs/staff schedule reference.png` (the Jobs side panel on the right). Open it next to the running panel and confirm the same structure: a status dropdown plus a search box on top; each card has a round letter badge (Q for Quote in orange, W for Work Order in navy, S for a hand-Scheduled job in navy), a coloured line down its left edge, the client name in bold with the job number right-aligned and muted, then the site address, then a muted one-line description. Zenith's navy and orange replace ServiceM8's blue and orange. The reference's "Lead source" line has no equivalent field in this app, so the job description fills that line (owner's decision, 2026-09-21; lead source itself is a separate backlog item). Adjust the CSS only if something is visibly off.
 
-- [ ] **Step 6: Lint and build**
+- [x] **Step 6: Lint and build**
 
 Run: `npm run lint` and `npm run build`. Expected: clean.
 
-- [ ] **Step 7: Manual browser check of the board (dev server: `npm run dev`)**
+- [x] **Step 7: Manual browser check of the board (dev server: `npm run dev`)**
 
 Log in as **office** or **admin**. There are no test jobs yet; create them through the app first: a client named "Schedule Test Client" and jobs for it (`/jobs/new`): one Quote, two Work Order, one more Work Order that you then edit to status Scheduled with no bookings (this is the "Scheduled by hand, no entries" state), and one Completed. Then verify:
 
@@ -2363,7 +2363,7 @@ Log in as **office** or **admin**. There are no test jobs yet; create them throu
 - Book a Work Order job: notice "Booked as a tentative hold." and a lighter dashed navy block tagged "Tentative". Book a second hold for the same job; both appear.
 - If any check fails, fix it before committing; do not defer.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/components/UnscheduledList.jsx src/pages/Schedule.jsx src/App.jsx src/components/AppShell.jsx
@@ -2382,7 +2382,7 @@ git commit -m "feat: add Dispatch Board page with unscheduled panel and nav link
 - Consumes: `useJobSchedule`, `useTechnicians` (Task 3), `BookingModal` (Task 5), `ScheduleEntryActions` (Task 6), `scheduleUtils` helpers, `useJob().reload({ silent: true })` (Task 3).
 - Produces: `<JobScheduleSection job onJobChanged />` where `job` is the `useJob` job object and `onJobChanged()` is awaited after any change so `JobDetail` refreshes the job's status.
 
-- [ ] **Step 1: Write `src/components/JobScheduleSection.jsx`**
+- [x] **Step 1: Write `src/components/JobScheduleSection.jsx`**
 
 ```jsx
 import { useState } from 'react'
@@ -2488,7 +2488,7 @@ export default function JobScheduleSection({ job, onJobChanged }) {
 }
 ```
 
-- [ ] **Step 2: Wire the tab into `src/pages/JobDetail.jsx`**
+- [x] **Step 2: Wire the tab into `src/pages/JobDetail.jsx`**
 
 Add the import after `import RoofReportSection from '../components/RoofReportSection'`:
 
@@ -2516,15 +2516,15 @@ After the line `{activeTab === 'Roof Report' && isStaff && <RoofReportSection jo
             )}
 ```
 
-- [ ] **Step 3: Lint and build**
+- [x] **Step 3: Lint and build**
 
 Run: `npm run lint` and `npm run build`. Expected: clean.
 
-- [ ] **Step 4: Manual browser check**
+- [x] **Step 4: Manual browser check**
 
 As office or admin, open a job: the Schedule tab appears between Job Contact and Billing. Verify: "No bookings yet." on an unbooked job; Book opens the form with the job read-only and today's date; after booking the row appears, the notice shows, and (for a Work Order job booked directly-confirmed later) the Details tab's Status updates without a page reload. As **technician**, open a job: no Schedule tab.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/JobScheduleSection.jsx src/pages/JobDetail.jsx
@@ -2539,29 +2539,29 @@ git commit -m "feat: add Schedule tab to JobDetail" -m "Co-Authored-By: Claude S
 - Modify: `docs/superpowers/plans/2026-09-21-shadow-schedule-phase2.md` (check off steps)
 - Modify: `CLAUDE.md`
 
-- [ ] **Step 1: Full manual browser verification, all three roles**
+- [x] **Step 1: Full manual browser verification, all three roles**
 
 Use the "Schedule Test Client" jobs from Task 7 (create more as needed). Confirm every item, as **office** (repeat the key ones as **admin**):
 
-- [ ] A job set to Scheduled by hand with NO schedule entries appears in the unscheduled panel as "Needs work scheduling"; booking it creates a tentative hold and its status stays Scheduled.
-- [ ] Inspection booking (Quote job) is a confirmed orange block with no tentative UI, and the job stays Quote.
-- [ ] Work booking on a Work Order job is tentative; a second hold for the same job coexists; the card shows "2 tentative holds".
-- [ ] Confirming one hold shows the "drops the other 1 tentative hold" warning; afterwards the sibling is gone from the grid and the job's status is Scheduled (notice says so).
-- [ ] Booking a second work day on that job is created confirmed directly (solid navy), no tentative step.
-- [ ] Completed job: it is not in the unscheduled panel; on its Schedule tab, Book defaults to 1 hr, saves as a confirmed work block, and the job's status stays Completed.
-- [ ] Remove always asks "Are you sure"; removing one of two confirmed work days does not change status; removing the last one adds the "goes back to Work Order" line and the status becomes Work Order.
-- [ ] Edit changes technician / date / time, persists after a page reload, and does not change the block's Inspection/Work type or its Tentative/Confirmed status.
-- [ ] Overlapping blocks for one technician split into stacked lanes in Day view; a booking 7:00pm-8:00pm and one 5:00am-6:00am are pinned to the right/left edge with their real times shown.
-- [ ] "All day" sets the start to 6:00 am and locks the start field; with a 4:00 pm start, durations of 8 hr and over are disabled.
-- [ ] Bookmark a Week URL and a Day URL and reopen them; Back/Forward step through views; `/schedule?view=bogus&date=nope` falls back to the current week.
-- [ ] The Jobs list's Scheduled column reflects new confirmed bookings, and a technician who is booked (confirmed) on a job sees it in their Jobs list.
-- [ ] As **technician**: no Schedule nav link, no Schedule tab on a job, and opening `/schedule` directly shows "Staff only."
-- [ ] Trigger a failure path once (e.g. in one browser tab remove a booking, then Confirm/Remove it in a stale second tab): a clear message appears and the modal does not hang on a spinner.
-- [ ] `npm run lint` and `npm run build` are clean.
+- [x] A job set to Scheduled by hand with NO schedule entries appears in the unscheduled panel as "Needs work scheduling"; booking it creates a tentative hold and its status stays Scheduled.
+- [x] Inspection booking (Quote job) is a confirmed orange block with no tentative UI, and the job stays Quote.
+- [x] Work booking on a Work Order job is tentative; a second hold for the same job coexists; the card shows "2 tentative holds".
+- [x] Confirming one hold shows the "drops the other 1 tentative hold" warning; afterwards the sibling is gone from the grid and the job's status is Scheduled (notice says so).
+- [x] Booking a second work day on that job is created confirmed directly (solid navy), no tentative step.
+- [x] Completed job: it is not in the unscheduled panel; on its Schedule tab, Book defaults to 1 hr, saves as a confirmed work block, and the job's status stays Completed.
+- [x] Remove always asks "Are you sure"; removing one of two confirmed work days does not change status; removing the last one adds the "goes back to Work Order" line and the status becomes Work Order.
+- [x] Edit changes technician / date / time, persists after a page reload, and does not change the block's Inspection/Work type or its Tentative/Confirmed status.
+- [x] Overlapping blocks for one technician split into stacked lanes in Day view; a booking 7:00pm-8:00pm and one 5:00am-6:00am are pinned to the right/left edge with their real times shown.
+- [x] "All day" sets the start to 6:00 am and locks the start field; with a 4:00 pm start, durations of 8 hr and over are disabled.
+- [x] Bookmark a Week URL and a Day URL and reopen them; Back/Forward step through views; `/schedule?view=bogus&date=nope` falls back to the current week.
+- [x] The Jobs list's Scheduled column reflects new confirmed bookings, and a technician who is booked (confirmed) on a job sees it in their Jobs list.
+- [x] As **technician**: no Schedule nav link, no Schedule tab on a job, and opening `/schedule` directly shows "Staff only."
+- [x] Trigger a failure path once (e.g. in one browser tab remove a booking, then Confirm/Remove it in a stale second tab): a clear message appears and the modal does not hang on a spinner.
+- [x] `npm run lint` and `npm run build` are clean.
 
 Report any failure and fix it before continuing.
 
-- [ ] **Step 2: Clean up the test data**
+- [x] **Step 2: Clean up the test data**
 
 Ask the user to run this in the Supabase SQL Editor (jobs first, which cascades their schedule entries, then the client):
 
@@ -2570,11 +2570,11 @@ delete from public.jobs where client_id in (select id from public.clients where 
 delete from public.clients where name = 'Schedule Test Client';
 ```
 
-- [ ] **Step 3: Update `CLAUDE.md`**
+- [x] **Step 3: Update `CLAUDE.md`**
 
 Add a "Shadow Schedule — Phase 2 (Dispatch Board)" entry under "What's Built" directly after the Phase 1 entry, covering: the `create_schedule_entry()` Completed branch and its migration; the `/schedule` page (Day + Week, URL-held view/date, stacked sub-lanes, chips, colours, unscheduled panel incl. the hand-Scheduled case); the shared `BookingModal` (start + duration picker, All day rule, defaults) and `ScheduleEntryActions`; the JobDetail Schedule tab; the local-date rule (no `toISOString()`) and the no-stuck-spinners rule; the deliberate simplification vs. the ServiceM8 ideal (already noted in the Phase 1 entry); the unscheduled panel following the ServiceM8 reference screenshot (`docs/staff schedule reference.png`), with the job description standing in for ServiceM8's "Lead source" line and a lead-source field noted as a separate backlog item; and that the manual browser verification passed. Then replace the Client Feedback List line `6. Shadow schedule — calendar UI with color-coded confirmed/unconfirmed jobs, hidden from field staff when unconfirmed. Not yet scoped in detail.` with `6. Shadow schedule — Phases 1 and 2 done (data model/access, then the Dispatch Board), see "What's Built"; Phase 3 (drag-and-drop) not started.`
 
-- [ ] **Step 4: Check off this plan and commit**
+- [x] **Step 4: Check off this plan and commit**
 
 ```bash
 sed -i 's/^- \[ \] /- [x] /' docs/superpowers/plans/2026-09-21-shadow-schedule-phase2.md
@@ -2582,6 +2582,6 @@ git add CLAUDE.md docs/superpowers/plans/2026-09-21-shadow-schedule-phase2.md
 git commit -m "docs: record Shadow Schedule Phase 2 completion in CLAUDE.md" -m "Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ```
 
-- [ ] **Step 5: Push (only with the user's go-ahead) and report with the progress checklist**
+- [x] **Step 5: Push (only with the user's go-ahead) and report with the progress checklist**
 
 Ask the user before pushing (a push to `main` auto-deploys to Vercel). When pushed, end the message with the running checklist covering all 3 phases (Phase 1 done, Phase 2 done, Phase 3 not started), per the user's standing instruction.
