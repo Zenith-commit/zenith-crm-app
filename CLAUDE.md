@@ -210,3 +210,17 @@ Found during the security hardening pass but not actionable from the repo — ne
 - Verify what actually exists (files, commits, completed migrations) before assuming or building on top of it
 - Confirm schema/RLS design with the human before implementing, especially for anything touching role-based access
 - Report back what was created and the results of live verification tests before moving to the next table/feature
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in GitHub Issues for Zenith-commit/zenith-crm (via `gh`). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default labels: needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
