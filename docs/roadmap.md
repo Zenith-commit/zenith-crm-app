@@ -12,7 +12,7 @@ Job Billing Integration (schema, RLS, bundle management UI, and Apply Bundle to 
 
 ## Client Feedback List (post-pilot, 2026-09-02)
 
-Client sent a feedback list after pilot testing (numbered 1-11 below, including the still-unresolved item). Triaged into three phases:
+Client sent a feedback list after pilot testing (numbered 1-11 below). Triaged into three phases:
 
 **Phase A — quick wins:**
 1. Feedback page — done, see `docs/build-log.md`.
@@ -30,8 +30,8 @@ Client sent a feedback list after pilot testing (numbered 1-11 below, including 
 9. Xero reporting integration — mock it, same treatment as email/SMS. No real OAuth or live financial data pull.
 10. Hours-based auto-invoicing — simplify significantly; capture hours + running total, skip anomaly-detection logic for now.
 
-**Still unresolved:**
-11. In-CRM instant messaging — needs clarification on staff-to-staff vs. staff-to-client before this can be scoped at all.
+**Resolved since triage:**
+11. In-CRM instant messaging — confirmed staff-to-staff only (no WhatsApp, no client chat). Planned as Team Chat (#10) in the development roadmap doc.
 
 ## Known Issues
 
@@ -44,4 +44,4 @@ Found during the security hardening pass but not actionable from the repo — ne
 - [ ] Supabase Auth: confirm leaked-password protection is enabled
 - [ ] Supabase Auth: confirm email confirmation is required for new accounts (lower priority today — accounts are admin-created only, no self-serve signup exists yet)
 - [ ] Supabase Auth: review JWT/session expiry length against how long a technician's phone session should realistically stay logged in
-- [ ] Once a hosting provider is chosen for deployment: add security headers (CSP, `X-Frame-Options`, `X-Content-Type-Options`, etc.) at the host/CDN level — no deployment config exists in this repo yet
+- [ ] Add security headers (CSP, `X-Frame-Options`, `X-Content-Type-Options`, etc.). The site is hosted on Vercel, and `vercel.json` currently holds only the SPA rewrite, so headers can be added there
